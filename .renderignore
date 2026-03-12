@@ -1,0 +1,16 @@
+# .renderignore for Render.com
+.env
+.env.*
+*.sqlite3
+*.db
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.vscode/
+Thumbs.db
+desktop.ini
+credentials.json
+token.json

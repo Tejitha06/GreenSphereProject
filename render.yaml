@@ -1,0 +1,15 @@
+# Render Python (Flask) Backend Service
+# https://render.com/docs/deploy-flask
+
+# Python version
+pythonVersion = "3.10"
+
+# Start command
+startCommand = "gunicorn run:app"
+
+# Install dependencies
+buildCommand = "pip install -r ffend/backend/requirements.txt"
+
+# Set working directory
+[service]
+  rootDir = "ffend/backend"
