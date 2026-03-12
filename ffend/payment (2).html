@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Secure Payment | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    .navbar {
+      background: rgba(255,255,255,0.95) !important;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 0.8rem 0;
+      margin-bottom: 20px;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #2e7d32 !important;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .navbar-brand::before {
+      content: "🌿";
+      font-size: 1.5rem;
+    }
+
+    .page-header {
+      text-align: center;
+      margin: 2rem 0 2rem;
+      animation: fadeInDown 0.6s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header h2 {
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .payment-container {
+      animation: fadeInUp 0.5s ease-out;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .payment-card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(46, 125, 50, 0.1);
+      margin-bottom: 25px;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .payment-card:hover {
+      box-shadow: 0 8px 30px rgba(46, 125, 50, 0.15);
+    }
+
+    .section-title {
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #E8F5E9;
+    }
+
+    .payment-option {
+      background: white;
+      border: 2px solid #E0E0E0;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .payment-option:hover {
+      border-color: #2e7d32;
+      background: #E8F5E9;
+      transform: translateX(5px);
+    }
+
+    .payment-option.selected {
+      border-color: #2e7d32;
+      background: #E8F5E9;
+      box-shadow: 0 4px 15px rgba(46, 125, 50, 0.15);
+    }
+
+    .payment-option input[type="radio"] {
+      width: 22px;
+      height: 22px;
+      accent-color: #2e7d32;
+      cursor: pointer;
+    }
+
+    .payment-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      border: 1px solid #C8E6C9;
+    }
+
+    .payment-details {
+      flex: 1;
+    }
+
+    .payment-title {
+      font-weight: 600;
+      color: #333;
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .payment-subtitle {
+      font-size: 0.88rem;
+      color: #666;
+    }
+
+    .payment-form {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: #FAFAFA;
+      border-radius: 10px;
+      border: 1px solid #E0E0E0;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .payment-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      color: #555;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #E0E0E0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
+
+    .card-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 15px;
+    }
+
+    .security-badge {
+      background: rgba(46, 125, 50, 0.08);
+      border: 1px solid #2e7d32;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 15px;
+      text-align: center;
+      font-size: 0.88rem;
+      color: #2e7d32;
+      font-weight: 500;
+    }
+
+    .order-summary {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 30px rgba(46, 125, 50, 0.25);
+      color: white;
+      position: sticky;
+      top: 20px;
+    }
+
+    .order-summary h5 {
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .summary-item {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-divider {
+      height: 2px;
+      background: rgba(255,255,255,0.2);
+      margin: 15px 0;
+    }
+
+    .summary-total {
+      font-size: 1.3rem;
+      font-weight: 700;
+      padding: 15px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-pay {
+      background: white;
+      color: #2e7d32;
+      border: none;
+      padding: 16px 30px;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      transition: all 0.3s;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+      margin-top: 20px;
+    }
+
+    .btn-pay:hover:not(:disabled) {
+      transform: scale(1.03);
+      box-shadow: 0 6px 25px rgba(255, 255, 255, 0.35);
+    }
+
+    .btn-pay:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .info-note {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #856404;
+    }
+
+    .success-check {
+      width: 70px;
+      height: 70px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 20px auto;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* ✅ NEW: Nursery info display */
+    .nursery-info-display {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 991px) {
+      .order-summary {
+        position: static;
+        margin-top: 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page-header h2 {
+        font-size: 1.8rem;
+      }
+
+      .card-row {
+        grid-template-columns: 1fr;
+      }
+
+      .payment-card {
+        padding: 20px;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #ffffff, #f0fff0);
+      color: #4caf50;
+      padding: 40px 50px 25px;
+      margin: 40px 40px 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(46, 125, 50, 0.15),
+                  0 8px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(46, 125, 50, 0.1);
+      position: relative;
+    }
+
+    .footer-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding-bottom: 30px;
+    }
+
+    .footer-col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-col-left a {
+      color: #4caf50;
+      text-decoration: underline;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .footer-col-left a:hover {
+      color: #2e7d32;
+    }
+
+    .footer-col-center {
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2e7d32;
+      letter-spacing: 2px;
+    }
+
+    .footer-col-right {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .social-section {
+      display: flex;
+      gap: 18px;
+    }
+
+    .social-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4caf50;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(46, 125, 50, 0.3);
+    }
+
+    .social-icon:hover {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+      transform: translateY(-3px);
+    }
+
+    .footer-divider {
+      border-color: rgba(46, 125, 50, 0.1);
+      margin: 0 0 20px 0;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      font-size: 12px;
+      color: #81c784;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-bottom p {
+      margin: 0;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .footer-bottom-links a {
+      color: #81c784;
+      text-decoration: underline;
+      font-size: 13px;
+      transition: color 0.3s;
+    }
+
+    .footer-bottom-links a:hover {
+      color: #4caf50;
+    }
+
+    @media (max-width: 768px) {
+      .footer-top-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 25px;
+      }
+
+      .footer-col-right {
+        justify-content: center;
+      }
+
+      .footer-bottom-links {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="#">GreenSphere</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h2>💳 Secure Payment Gateway</h2>
+    <p>Choose your preferred payment method to complete your order</p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-7">
+      <div class="payment-container">
+        
+        <!-- UPI Payment -->
+        <div class="payment-card">
+          <div class="section-title">📱 UPI Payment</div>
+          
+          <div class="payment-option" onclick="selectPayment('upi', this)">
+            <input type="radio" name="payment" id="upi" value="upi">
+            <div class="payment-icon">📱</div>
+            <div class="payment-details">
+              <div class="payment-title">UPI / QR Code</div>
+              <div class="payment-subtitle">Google Pay, PhonePe, Paytm, BHIM & more</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="upi-form">
+            <div class="form-group">
+              <label>Enter UPI ID</label>
+              <input type="text" class="form-control" placeholder="yourname@upi" id="upi-id">
+            </div>
+            <div class="form-group">
+              <label>Verify Mobile Number</label>
+              <input type="tel" class="form-control" placeholder="+91 XXXXX XXXXX" maxlength="10">
+            </div>
+            <div class="security-badge">
+              🔒 Protected by UPI secure payment protocol
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Payment -->
+        <div class="payment-card">
+          <div class="section-title">💳 Credit / Debit Card</div>
+          
+          <div class="payment-option" onclick="selectPayment('card', this)">
+            <input type="radio" name="payment" id="card" value="card">
+            <div class="payment-icon">💳</div>
+            <div class="payment-details">
+              <div class="payment-title">Credit or Debit Card</div>
+              <div class="payment-subtitle">Visa, Mastercard, Rupay, Amex accepted</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="card-form">
+            <div class="form-group">
+              <label>Card Number</label>
+              <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" id="card-number">
+            </div>
+            <div class="form-group">
+              <label>Cardholder Name</label>
+              <input type="text" class="form-control" placeholder="Name as on card" id="card-name">
+            </div>
+            <div class="card-row">
+              <div class="form-group">
+                <label>Expiry Date</label>
+                <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" id="card-expiry">
+              </div>
+              <div class="form-group">
+                <label>CVV</label>
+                <input type="password" class="form-control" placeholder="123" maxlength="3" id="card-cvv">
+              </div>
+            </div>
+            <div class="form-group">
+              <input type="checkbox" id="save-card">
+              <label for="save-card" style="display: inline; margin-left: 8px; font-weight: 400;">Save card for future payments</label>
+            </div>
+            <div class="security-badge">
+              🔒 Your card details are 256-bit SSL encrypted
+            </div>
+          </div>
+        </div>
+
+        <!-- Net Banking -->
+        <div class="payment-card">
+          <div class="section-title">🏦 Net Banking</div>
+          
+          <div class="payment-option" onclick="selectPayment('netbanking', this)">
+            <input type="radio" name="payment" id="netbanking" value="netbanking">
+            <div class="payment-icon">🏦</div>
+            <div class="payment-details">
+              <div class="payment-title">Net Banking</div>
+              <div class="payment-subtitle">All major Indian banks supported</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="netbanking-form">
+            <div class="form-group">
+              <label>Select Your Bank</label>
+              <select class="form-control" id="bank-select">
+                <option value="">-- Choose your bank --</option>
+                <option value="sbi">State Bank of India</option>
+                <option value="hdfc">HDFC Bank</option>
+                <option value="icici">ICICI Bank</option>
+                <option value="axis">Axis Bank</option>
+                <option value="kotak">Kotak Mahindra Bank</option>
+                <option value="pnb">Punjab National Bank</option>
+                <option value="bob">Bank of Baroda</option>
+                <option value="canara">Canara Bank</option>
+                <option value="idbi">IDBI Bank</option>
+                <option value="yes">Yes Bank</option>
+                <option value="indusind">IndusInd Bank</option>
+                <option value="other">Other Banks</option>
+              </select>
+            </div>
+            <div class="security-badge">
+              🔒 You will be redirected to your bank's secure gateway
+            </div>
+          </div>
+        </div>
+
+        <!-- Digital Wallets -->
+        <div class="payment-card">
+          <div class="section-title">👛 Digital Wallets</div>
+          
+          <div class="payment-option" onclick="selectPayment('wallet', this)">
+            <input type="radio" name="payment" id="wallet" value="wallet">
+            <div class="payment-icon">👛</div>
+            <div class="payment-details">
+              <div class="payment-title">Mobile Wallets</div>
+              <div class="payment-subtitle">Paytm, PhonePe, Amazon Pay, Mobikwik & more</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="wallet-form">
+            <div class="form-group">
+              <label>Select Your Wallet</label>
+              <select class="form-control" id="wallet-select">
+                <option value="">-- Choose wallet provider --</option>
+                <option value="paytm">Paytm Wallet</option>
+                <option value="phonepe">PhonePe Wallet</option>
+                <option value="amazonpay">Amazon Pay</option>
+                <option value="mobikwik">Mobikwik</option>
+                <option value="freecharge">Freecharge</option>
+                <option value="airtel">Airtel Money</option>
+                <option value="jio">JioMoney</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mobile Number</label>
+              <input type="tel" class="form-control" placeholder="Enter mobile number" maxlength="10">
+            </div>
+            <div class="security-badge">
+              🔒 Secure wallet integration via trusted partners
+            </div>
+          </div>
+        </div>
+
+        <!-- EMI Options -->
+        <div class="payment-card">
+          <div class="section-title">💰 EMI Options</div>
+          
+          <div class="payment-option" onclick="selectPayment('emi', this)">
+            <input type="radio" name="payment" id="emi" value="emi">
+            <div class="payment-icon">💰</div>
+            <div class="payment-details">
+              <div class="payment-title">Easy EMI / Pay Later</div>
+              <div class="payment-subtitle">No cost EMI available on select cards</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="emi-form">
+            <div class="form-group">
+              <label>Card Number</label>
+              <input type="text" class="form-control" placeholder="Enter card number" maxlength="19">
+            </div>
+            <div class="form-group">
+              <label>Select EMI Tenure</label>
+              <select class="form-control">
+                <option value="">-- Choose EMI plan --</option>
+                <option value="3">3 Months - No Cost EMI</option>
+                <option value="6">6 Months - No Cost EMI</option>
+                <option value="9">9 Months (Interest applicable)</option>
+                <option value="12">12 Months (Interest applicable)</option>
+              </select>
+            </div>
+            <div class="info-note">
+              <strong>Note:</strong> EMI options are subject to bank approval. No cost EMI available on select banks only.
+            </div>
+          </div>
+        </div>
+
+        <!-- Buy Now Pay Later -->
+        <div class="payment-card">
+          <div class="section-title">⏰ Buy Now, Pay Later</div>
+          
+          <div class="payment-option" onclick="selectPayment('bnpl', this)">
+            <input type="radio" name="payment" id="bnpl" value="bnpl">
+            <div class="payment-icon">⏰</div>
+            <div class="payment-details">
+              <div class="payment-title">Buy Now Pay Later</div>
+              <div class="payment-subtitle">LazyPay, Simpl, ZestMoney, Flexmoney</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="bnpl-form">
+            <div class="form-group">
+              <label>Select Provider</label>
+              <select class="form-control">
+                <option value="">-- Choose BNPL provider --</option>
+                <option value="lazypay">LazyPay</option>
+                <option value="simpl">Simpl</option>
+                <option value="zestmoney">ZestMoney</option>
+                <option value="flexmoney">Flexmoney</option>
+                <option value="kredivo">Kredivo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mobile Number</label>
+              <input type="tel" class="form-control" placeholder="Registered mobile number" maxlength="10">
+            </div>
+            <div class="info-note">
+              You'll be redirected to complete verification. Pay in 15-30 days or choose EMI.
+            </div>
+          </div>
+        </div>
+
+        <!-- Cash on Delivery -->
+        <div class="payment-card">
+          <div class="section-title">💵 Cash on Delivery</div>
+          
+          <div class="payment-option" onclick="selectPayment('cod', this)">
+            <input type="radio" name="payment" id="cod" value="cod">
+            <div class="payment-icon">💵</div>
+            <div class="payment-details">
+              <div class="payment-title">Cash on Delivery</div>
+              <div class="payment-subtitle">Pay when you receive your order</div>
+            </div>
+          </div>
+
+          <div class="payment-form" id="cod-form">
+            <div class="info-note">
+              <strong>Please Note:</strong>
+              <ul style="margin: 10px 0 0 20px; padding: 0;">
+                <li>COD charges: ₹50 applicable</li>
+                <li>Please keep exact change ready</li>
+                <li>Available for orders below ₹50,000</li>
+                <li>Delivery person will carry change for ₹500 notes</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="order-summary">
+        <h5>📦 Order Summary</h5>
+        
+        <!-- ✅ NEW: Display nursery info -->
+        <div class="nursery-info-display">
+          <div style="font-weight: 600; margin-bottom: 3px;">🏪 <span id="nursery-name">Loading...</span></div>
+          <div style="font-size: 0.85rem; opacity: 0.9;">📍 <span id="nursery-location">Loading...</span></div>
+        </div>
+
+        <!-- ✅ NEW: Display order ID -->
+        <div class="summary-item">
+          <span>Order ID</span>
+          <span id="order-id" style="font-weight: 600;">Loading...</span>
+        </div>
+        
+        <div id="cart-items">
+          <!-- Cart items will be loaded here -->
+        </div>
+        
+        <div class="summary-divider"></div>
+        
+        <div class="summary-item">
+          <span>Subtotal</span>
+          <span id="subtotal">₹0</span>
+        </div>
+        <div class="summary-item">
+          <span>Delivery Charges</span>
+          <span id="delivery-charges" style="color: #4CAF50;">FREE</span>
+        </div>
+        <div class="summary-item">
+          <span>GST (5%)</span>
+          <span id="gst">₹0</span>
+        </div>
+        
+        <div class="summary-total">
+          <span>Total Amount</span>
+          <span id="total-amount">₹0</span>
+        </div>
+
+        <button class="btn-pay" id="payBtn" disabled onclick="processPayment()">
+          Select Payment Method First
+        </button>
+
+        <div style="margin-top: 20px; font-size: 0.85rem; text-align: center; opacity: 0.9;">
+          🔒 100% Secure Payment • SSL Encrypted
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedPaymentMethod = null;
+let orderData = null; // ✅ CHANGED: Store entire order data
+
+// ✅ CHANGED: Load order data on page load
+window.addEventListener('DOMContentLoaded', function() {
+  loadOrderData();
+});
+
+// ✅ NEW: Load order data from sessionStorage
+function loadOrderData() {
+  const storedOrder = sessionStorage.getItem('currentOrder');
+  
+  if (!storedOrder) {
+    alert('No order found! Redirecting to order page...');
+    window.location.href = 'placeorder.html';
+    return;
+  }
+  
+  orderData = JSON.parse(storedOrder);
+  
+  // Display nursery information
+  if (orderData.nursery) {
+    document.getElementById('nursery-name').textContent = orderData.nursery.name;
+    document.getElementById('nursery-location').textContent = `${orderData.nursery.area}, ${orderData.nursery.city}`;
+  }
+  
+  // Display order ID
+  document.getElementById('order-id').textContent = orderData.orderId;
+  
+  // Display cart items
+  displayCartItems();
+  
+  // Calculate and display totals
+  calculateTotals();
+}
+
+// ✅ CHANGED: Display cart items from order data
+function displayCartItems() {
+  const cartItemsContainer = document.getElementById('cart-items');
+  
+  if (!orderData.cart || orderData.cart.length === 0) {
+    cartItemsContainer.innerHTML = '<div class="summary-item"><span>No items in cart</span></div>';
+    return;
+  }
+  
+  let itemsHTML = '';
+  orderData.cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    itemsHTML += `
+      <div class="summary-item">
+        <span>${item.name}${item.quantity > 1 ? ' (x' + item.quantity + ')' : ''}</span>
+        <span>₹${itemTotal}</span>
+      </div>
+    `;
+  });
+  
+  cartItemsContainer.innerHTML = itemsHTML;
+}
+
+// ✅ CHANGED: Calculate totals from order data
+function calculateTotals() {
+  // Use the totalAmount from orderData
+  const subtotal = orderData.totalAmount;
+  
+  // Calculate delivery charges (free for orders above 500)
+  const deliveryCharges = subtotal >= 500 ? 0 : 50;
+  
+  // Calculate GST (5%)
+  const gst = Math.round(subtotal * 0.05);
+  
+  // Calculate total
+  const totalAmount = subtotal + deliveryCharges + gst;
+  
+  // Update UI
+  document.getElementById('subtotal').textContent = `₹${subtotal}`;
+  
+  const deliveryElement = document.getElementById('delivery-charges');
+  if (deliveryCharges === 0) {
+    deliveryElement.innerHTML = '<span style="color: #4CAF50;">FREE</span>';
+  } else {
+    deliveryElement.textContent = `₹${deliveryCharges}`;
+  }
+  
+  document.getElementById('gst').textContent = `₹${gst}`;
+  document.getElementById('total-amount').textContent = `₹${totalAmount}`;
+  
+  // ✅ CHANGED: Update orderData with final amount
+  orderData.finalAmount = totalAmount;
+  orderData.gst = gst;
+  orderData.deliveryCharges = deliveryCharges;
+}
+
+function selectPayment(method, element) {
+  // Remove active class from all options
+  document.querySelectorAll('.payment-option').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  
+  // Hide all forms
+  document.querySelectorAll('.payment-form').forEach(form => {
+    form.classList.remove('active');
+  });
+  
+  // Select the radio button
+  const radio = element.querySelector('input[type="radio"]');
+  radio.checked = true;
+  
+  // Add active class to selected option
+  element.classList.add('selected');
+  
+  // Show corresponding form
+  const form = document.getElementById(`${method}-form`);
+  if (form) {
+    form.classList.add('active');
+  }
+  
+  // Update selected method
+  selectedPaymentMethod = method;
+  
+  // Enable pay button
+  const payBtn = document.getElementById('payBtn');
+  payBtn.disabled = false;
+  payBtn.textContent = `Proceed to Pay ₹${orderData.finalAmount}`;
+  payBtn.style.background = 'white';
+}
+
+function processPayment() {
+  if (!selectedPaymentMethod) {
+    alert('Please select a payment method');
+    return;
+  }
+  
+  if (!orderData || !orderData.cart || orderData.cart.length === 0) {
+    alert('Your cart is empty!');
+    return;
+  }
+  
+  // Validate based on payment method
+  let isValid = true;
+  let errorMsg = '';
+  
+  switch(selectedPaymentMethod) {
+    case 'upi':
+      const upiId = document.getElementById('upi-id').value.trim();
+      if (!upiId) {
+        isValid = false;
+        errorMsg = 'Please enter your UPI ID';
+      } else if (!upiId.includes('@')) {
+        isValid = false;
+        errorMsg = 'Please enter a valid UPI ID (e.g., name@upi)';
+      }
+      break;
+      
+    case 'card':
+      const cardNumber = document.getElementById('card-number').value.trim();
+      const cardName = document.getElementById('card-name').value.trim();
+      const cardExpiry = document.getElementById('card-expiry').value.trim();
+      const cardCvv = document.getElementById('card-cvv').value.trim();
+      
+      if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
+        isValid = false;
+        errorMsg = 'Please fill in all card details';
+      } else if (cardNumber.replace(/\s/g, '').length < 13) {
+        isValid = false;
+        errorMsg = 'Please enter a valid 16-digit card number';
+      } else if (cardCvv.length < 3) {
+        isValid = false;
+        errorMsg = 'Please enter a valid 3-digit CVV';
+      }
+      break;
+      
+    case 'netbanking':
+      const bank = document.getElementById('bank-select').value;
+      if (!bank) {
+        isValid = false;
+        errorMsg = 'Please select your bank';
+      }
+      break;
+      
+    case 'wallet':
+      const wallet = document.getElementById('wallet-select').value;
+      if (!wallet) {
+        isValid = false;
+        errorMsg = 'Please select your wallet provider';
+      }
+      break;
+      
+    case 'cod':
+      // No validation needed for COD
+      break;
+  }
+  
+  if (!isValid) {
+    alert(errorMsg);
+    return;
+  }
+  
+  // Show processing message
+  const payBtn = document.getElementById('payBtn');
+  payBtn.disabled = true;
+  payBtn.textContent = 'Processing Payment...';
+  payBtn.style.background = '#E0E0E0';
+  
+  // Simulate payment processing
+  setTimeout(() => {
+    completePayment();
+  }, 2000);
+}
+
+// ✅ NEW: Complete payment and update order data
+function completePayment() {
+  const paymentMethodNames = {
+    'upi': 'UPI Payment',
+    'card': 'Card Payment',
+    'netbanking': 'Net Banking',
+    'wallet': 'Digital Wallet',
+    'emi': 'EMI Payment',
+    'bnpl': 'Buy Now Pay Later',
+    'cod': 'Cash on Delivery'
+  };
+  
+  // ✅ UPDATE: Add payment information to order data
+  orderData.paymentMethod = paymentMethodNames[selectedPaymentMethod];
+  orderData.paymentStatus = 'completed';
+  orderData.paymentDate = new Date().toISOString();
+  orderData.transactionId = 'TXN' + Date.now();
+  
+  // ✅ SAVE: Update sessionStorage with payment info
+  sessionStorage.setItem('currentOrder', JSON.stringify(orderData));
+  
+  // Show success message
+  if (selectedPaymentMethod === 'cod') {
+    alert(`✅ Order Confirmed!\n\nOrder ID: ${orderData.orderId}\nPayment Method: ${orderData.paymentMethod}\nAmount: ₹${orderData.finalAmount} (Pay on Delivery)\n\n📦 Your order will be delivered in 3-5 business days.\nPlease keep ₹${orderData.finalAmount} ready in cash.`);
+  } else {
+    alert(`✅ Payment Successful!\n\nOrder ID: ${orderData.orderId}\nPayment Method: ${orderData.paymentMethod}\nAmount Paid: ₹${orderData.finalAmount}\nTransaction ID: ${orderData.transactionId}\n\n📦 Your order will be delivered in 3-5 business days.\n\nThank you for shopping with GreenSphere! 🌿`);
+  }
+  
+  // ✅ REDIRECT: to tracking page (change this to your actual tracking page name)
+  window.location.href = 'order tracking.html';
+}
+
+// Auto-format card number
+document.addEventListener('DOMContentLoaded', function() {
+  const cardNumberInput = document.getElementById('card-number');
+  if (cardNumberInput) {
+    cardNumberInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\s/g, '');
+      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+      e.target.value = formattedValue;
+    });
+  }
+  
+  // Auto-format expiry date
+  const cardExpiryInput = document.getElementById('card-expiry');
+  if (cardExpiryInput) {
+    cardExpiryInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+      }
+      e.target.value = value;
+    });
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- FOOTER SECTION -->
+<footer>
+  <div class="container">
+    <!-- Top Footer: 3 columns -->
+    <div class="footer-top-row">
+      <!-- Left: Contact -->
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+
+      <!-- Center: Brand -->
+      <div class="footer-col-center">
+        <span class="footer-logo">🌿 GreenSphere</span>
+      </div>
+
+      <!-- Right: Social Icons -->
+      <div class="footer-col-right">
+       <div class="social-section">
+  <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+  <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+  <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+  <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+</div>
+      
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</body>
+</html>

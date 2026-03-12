@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disease Detection | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #EDF9EB;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: #2e7d32 !important;
+    }
+
+    .page-title {
+      color: #1b5e20;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .upload-box {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      transition: all 0.4s ease;
+    }
+
+    .btn-success {
+      background-color: #2e7d32;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 26px;
+    }
+
+    .card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+
+    .section-title {
+      color: #1b5e20;
+      font-weight: 700;
+      font-size: 2.0rem;
+      margin-bottom: 15px;
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+
+    .section-subtitle {
+      color: #666;
+      font-size: 1.0rem;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 400;
+    }
+
+    .section-box {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .badge-severity {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .severity-moderate { background: #fff3cd; color: #856404; }
+    .severity-high { background: #f8d7da; color: #721c24; }
+    .severity-very-high { background: #dc3545; color: white; }
+
+    .navbar-profile {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-left: 20px;
+      padding-left: 20px;
+      border-left: 1px solid #e0e0e0;
+    }
+    
+    .profile-image-navbar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #2e7d32;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .profile-image-navbar:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+    }
+    
+    .profile-image-navbar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    @media (max-width: 768px) {
+      .navbar-profile {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: 10px;
+      }
+    }
+
+    .section-box h5 {
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* NEW STYLES FOR SPLIT SCREEN LAYOUT */
+    .detection-container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      margin-bottom: 40px;
+    }
+
+    .upload-section {
+      flex: 1;
+      min-width: 350px;
+    }
+
+    .upload-section.compact .upload-box {
+      max-width: 100%;
+      padding: 20px;
+    }
+
+    .upload-section.compact .upload-box > div:first-child {
+      font-size: 2rem !important;
+      margin-bottom: 10px !important;
+    }
+
+    .results-section {
+      flex: 1.5;
+      display: none;
+      opacity: 0;
+      transform: translateX(20px);
+      transition: all 0.5s ease;
+    }
+
+    .results-section.show {
+      display: block;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .result-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .result-card h4 {
+      color: #1b5e20;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .uploaded-image-preview {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .detection-container {
+        flex-direction: column;
+      }
+      
+      .upload-section {
+        min-width: 100%;
+      }
+
+      .results-section {
+        width: 100%;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #ffffff, #f0fff0);
+      color: #4caf50;
+      padding: 40px 50px 25px;
+      margin: 40px 40px 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(46, 125, 50, 0.15),
+                  0 8px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(46, 125, 50, 0.1);
+      position: relative;
+    }
+
+    .footer-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding-bottom: 30px;
+    }
+
+    .footer-col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-col-left a {
+      color: #4caf50;
+      text-decoration: underline;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .footer-col-left a:hover {
+      color: #2e7d32;
+    }
+
+    .footer-col-center {
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2e7d32;
+      letter-spacing: 2px;
+    }
+
+    .footer-col-right {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .social-section {
+      display: flex;
+      gap: 18px;
+    }
+
+    .social-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4caf50;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(46, 125, 50, 0.3);
+    }
+
+    .social-icon:hover {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+      transform: translateY(-3px);
+    }
+
+    .footer-divider {
+      border-color: rgba(46, 125, 50, 0.1);
+      margin: 0 0 20px 0;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      font-size: 12px;
+      color: #81c784;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-bottom p {
+      margin: 0;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .footer-bottom-links a {
+      color: #81c784;
+      text-decoration: underline;
+      font-size: 13px;
+      transition: color 0.3s;
+    }
+
+    .footer-bottom-links a:hover {
+      color: #4caf50;
+    }
+
+    @media (max-width: 768px) {
+      .footer-top-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 25px;
+      }
+
+      .footer-col-right {
+        justify-content: center;
+      }
+
+      .footer-bottom-links {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+    
+    .profile-dropdown {
+      position: absolute;
+      top: 65px;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.2);
+      min-width: 300px;
+      display: none;
+      z-index: 1000;
+      border: 1px solid #e0e0e0;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .profile-dropdown.active {
+      display: block;
+    }
+    
+    .profile-dropdown-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+      border-radius: 11px 11px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .profile-dropdown-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid white;
+      flex-shrink: 0;
+    }
+    
+    .profile-dropdown-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .profile-dropdown-info {
+      flex: 1;
+    }
+    
+    .profile-dropdown-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .profile-dropdown-email {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+    
+    .profile-dropdown-body {
+      padding: 15px 20px;
+    }
+    
+    .profile-detail-row {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .profile-detail-row:last-child {
+      border-bottom: none;
+    }
+    
+    .profile-detail-label {
+      font-weight: 600;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .profile-detail-value {
+      color: #333;
+      font-size: 0.9rem;
+      text-align: right;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .profile-dropdown-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .profile-dropdown-footer a {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    
+    .profile-btn-view {
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+    }
+    
+    .profile-btn-view:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+      text-decoration: none;
+      color: white;
+    }
+    
+    .profile-btn-logout {
+      background: #f5f5f5;
+      color: #f44336;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .profile-btn-logout:hover {
+      background: #ffebee;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🌿 GreenSphere</a>
+
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="identify.html">Identify</a></li>
+      <li class="nav-item"><a class="nav-link active" href="disease.html">Disease</a></li>
+      <li class="nav-item"><a class="nav-link" href="nursery.html">Nurseries</a></li>
+      <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+
+    </ul>
+    <div class="navbar-profile" id="navbarProfile"></div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+
+  <h2 class="page-title text-center">🔬 Detect Plant Disease</h2>
+  <p class="text-muted mb-4 text-center">
+    Upload a photo of the infected plant part to identify it and get treatment guidance.
+  </p>
+
+  <!-- Split Screen Container -->
+  <div class="detection-container" id="detectionContainer">
+    <!-- Upload Section (Left) -->
+    <div class="upload-section" id="uploadSection">
+      <div class="upload-box">
+        <div class="mb-3">
+          <div style="font-size: 3rem; margin-bottom: 15px;">📸</div>
+        </div>
+        <p style="font-size: 1rem; color: #555; margin-bottom: 25px;">
+          Upload a clear image of the infected leaf or stem.
+        </p>
+        <input type="file" id="plantImage" class="form-control mb-4" style="max-width: 400px; margin: 0 auto;" accept="image/*">
+
+        <button class="btn btn-success" id="detectBtn" onclick="detectDisease(event)">
+          <span id="detectBtnText">Detect Disease</span>
+          <span id="detectBtnLoading" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2"></span>Analyzing...
+          </span>
+        </button>
+        <div id="uploadError" class="text-danger mt-2" style="display: none;"></div>
+
+        <!-- Preview of uploaded image -->
+        <div id="imagePreviewContainer" style="margin-top: 20px; display: none;">
+          <img id="imagePreview" class="uploaded-image-preview" alt="Uploaded plant image">
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section (Right) -->
+    <div class="results-section" id="resultsSection">
+      <div class="result-card" id="resultCard">
+        <!-- Results will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Your Recent Disease Searches Section -->
+  <div class="mt-5" id="recentDiseaseSearchesContainer" style="display: none;">
+    <h3 class="section-title">Your Recent Disease Searches</h3>
+    <p class="text-center text-muted mb-4">Diseases you've recently detected</p>
+    
+    <div class="row g-4" id="recentDiseaseSearchesGrid">
+      <!-- Recent disease cards will be inserted here -->
+    </div>
+    
+    <div class="text-center mt-4" id="viewAllDiseaseButtonContainer" style="display: none;">
+      <button class="btn btn-success" onclick="openDiseaseHistoryModal()">View All History</button>
+    </div>
+  </div>
+
+  <div class="mt-5 mb-5">
+    <h3 class="section-title">Common Plant Diseases</h3>
+    <p class="section-subtitle">Click on any disease to see detailed information</p>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('rootRot')">
+          <img src="disease pics/root rot.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;" alt="Root Rot">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Root Rot</h6>
+            <p class="text-muted small mb-0">Fungal root decay</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('powderyMildew')">
+          <img src="disease pics/Powdery Mildew.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Powdery Mildew</h6>
+            <p class="text-muted small mb-0">White dusty coating</p>
+          </div>
+        </div>
+      </div>
+       <!-- Downy Mildew -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('downyMildew')">
+          <img src="disease pics/Downy Mildew.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Downy Mildew</h6>
+            <p class="text-muted small mb-0">Yellowish leaf patches</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anthracnose -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('anthracnose')">
+          <img src="disease pics/Anthracnose.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Anthracnose</h6>
+            <p class="text-muted small mb-0">Dark sunken lesions</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Black Spot -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('blackSpot')">
+          <img src="disease pics/Black Spot.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Black Spot</h6>
+            <p class="text-muted small mb-0">Black circular spots</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rust -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('rust')">
+          <img src="disease pics/Rust Disease.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Rust Disease</h6>
+            <p class="text-muted small mb-0">Orange-brown pustules</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botrytis Blight -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('botrytis')">
+          <img src="disease pics/Botrytis Blight (Gray Mold).jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Botrytis Blight</h6>
+            <p class="text-muted small mb-0">Fuzzy gray mold</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fusarium Wilt -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('fusariumWilt')">
+          <img src="disease pics/Fusarium Wilt.png" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Fusarium Wilt</h6>
+            <p class="text-muted small mb-0">Soil-borne wilting</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bacterial Blight -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('bacterialBlight')">
+          <img src="disease pics/Bacterial Blight.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Bacterial Blight</h6>
+            <p class="text-muted small mb-0">Water-soaked tissue death</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fire Blight -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('fireBlight')">
+          <img src="disease pics/Fireblight.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Fire Blight</h6>
+            <p class="text-muted small mb-0">Scorched-looking branches</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bacterial Soft Rot -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('softRot')">
+          <img src="disease pics/Bacterial Soft Rot.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Bacterial Soft Rot</h6>
+            <p class="text-muted small mb-0">Soft slimy tissue</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bacterial Leaf Spot -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('leafSpot')">
+          <img src="disease pics/Bacterial Leaf Spot.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Bacterial Leaf Spot</h6>
+            <p class="text-muted small mb-0">Dark water-soaked spots</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mosaic Virus -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('mosaicVirus')">
+          <img src="disease pics/Mosaic Virus.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Mosaic Virus</h6>
+            <p class="text-muted small mb-0">Mottled leaf patterns</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tomato Spotted Wilt -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('tswv')">
+          <img src="disease pics/Tomato Spotted Wilt Virus.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Tomato Spotted Wilt</h6>
+            <p class="text-muted small mb-0">Necrotic spots & rings</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaf Curl -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('leafCurl')">
+          <img src="disease pics/Leaf Curl.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Leaf Curl</h6>
+            <p class="text-muted small mb-0">Distorted curled leaves</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blossom End Rot -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('blossomEndRot')">
+          <img src="disease pics/Blossom End Rot.webp" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Blossom End Rot</h6>
+            <p class="text-muted small mb-0">Calcium deficiency patches</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chlorosis -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('chlorosis')">
+          <img src="disease pics/Chlorosis.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Chlorosis</h6>
+            <p class="text-muted small mb-0">Yellowing from nutrient lack</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aphids -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm" style="cursor: pointer; border-radius: 15px;" onclick="openDiseaseModal('aphids')">
+          <img src="disease pics/Aphid Infestation.jpg" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+          <div class="card-body">
+            <h6 class="fw-bold text-danger">Aphid Infestation</h6>
+            <p class="text-muted small mb-0">Sap-sucking insects</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="diseaseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content" style="border-radius: 25px; border: none; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header border-0" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 25px 30px;">
+          <div>
+            <h4 class="modal-title fw-bold mb-1" id="diseaseTitle" style="color: white;"></h4>
+            <p class="mb-0 small" style="opacity: 0.9;" id="diseaseSubtitle"></p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-0" id="diseaseContent" style="background: #f8f9fa; max-height: 70vh; overflow-y: auto;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // YOUR DATA OBJECT
+  const diseaseData = {
+    rootRot: {
+      title: "Root Rot",
+      severity: "High",
+      description: "Fungal infection that damages plant roots, preventing water and nutrient absorption.",
+      causes: ["Overwatering", "Poor drainage", "Contaminated soil", "Fungal pathogens"],
+      symptoms: ["Yellowing leaves", "Wilting despite wet soil", "Mushy dark roots", "Foul smell from soil"],
+      homeRemedies: ["Stop watering and let soil dry", "Trim affected roots with sterile scissors", "Repot in fresh well-draining soil", "Apply cinnamon powder as natural fungicide"],
+      fertilizer: ["Avoid fertilizing until recovered", "Use diluted liquid fertilizer (half strength)", "Apply seaweed extract for recovery"],
+      pesticide: ["Apply fungicide with thiophanate-methyl", "Use 1-2 ml per liter water", "Drench soil thoroughly", "Repeat after 2 weeks if needed"],
+      prevention: ["Water when top 2 inches dry", "Ensure drainage holes", "Use well-draining potting mix"]
+    },
+    powderyMildew: {
+      title: "Powdery Mildew",
+      severity: "Moderate",
+      description: "Fungal disease creating white powdery patches on leaves, stems, and flowers.",
+      causes: ["High humidity", "Poor air circulation", "Shade and dampness", "Crowded plants"],
+      symptoms: ["White powdery coating", "Distorted new growth", "Yellowing leaves", "Premature leaf drop"],
+      homeRemedies: ["Mix 1 tbsp baking soda + 1 tbsp oil in 1L water", "Spray weekly", "Remove heavily infected leaves", "Use milk solution (1:9 ratio)"],
+      fertilizer: ["Avoid high-nitrogen fertilizers", "Use balanced NPK (10-10-10)", "Apply potassium-rich fertilizer"],
+      pesticide: ["Use sulfur-based fungicide", "Apply neem oil (5ml/L) every 7 days", "Spray early morning or evening", "Ensure thorough coverage"],
+      prevention: ["Improve air circulation", "Water at soil level", "Provide adequate sunlight"]
+    },
+      downyMildew: {
+      title: "Downy Mildew",
+      severity: "Moderate",
+      description: "Fungal disease causing yellowish patches on upper leaf surfaces with fuzzy growth underneath.",
+      causes: ["Cool moist conditions", "High humidity", "Poor air circulation", "Overhead watering"],
+      symptoms: ["Yellow patches on upper leaf", "Gray/purple fuzz underneath", "Leaf curling", "Stunted growth"],
+      homeRemedies: ["Remove infected leaves immediately", "Improve air flow", "Apply baking soda spray", "Reduce humidity around plants"],
+      fertilizer: ["Use potassium-based fertilizers", "Apply balanced NPK", "Boost plant immunity with compost"],
+      pesticide: ["Apply copper-based fungicide", "Use mancozeb fungicide", "Spray preventatively", "Follow label instructions"],
+      prevention: ["Water at base of plant", "Space plants properly", "Avoid evening watering", "Remove plant debris"]
+    },
+    anthracnose: {
+      title: "Anthracnose",
+      severity: "High",
+      description: "Fungal disease causing dark, sunken lesions on leaves, stems, or fruits.",
+      causes: ["Warm humid weather", "Splashing water", "Infected plant debris", "Wounds in plant tissue"],
+      symptoms: ["Dark sunken spots", "Brown lesions on fruit", "Leaf dieback", "Stem cankers"],
+      homeRemedies: ["Prune infected parts", "Apply garlic spray", "Use copper spray", "Improve air circulation"],
+      fertilizer: ["Balanced NPK fertilizer", "Avoid excessive nitrogen", "Use phosphorus-rich formulas"],
+      pesticide: ["Apply chlorothalonil fungicide", "Use copper fungicide", "Spray every 7-10 days", "Start at first sign"],
+      prevention: ["Remove fallen debris", "Practice crop rotation", "Avoid overhead watering", "Plant resistant varieties"]
+    },
+    blackSpot: {
+      title: "Black Spot",
+      severity: "Moderate",
+      description: "Fungal disease common on roses, appearing as black circular spots on leaves.",
+      causes: ["Wet foliage", "High humidity", "Poor air circulation", "Splashing water"],
+      symptoms: ["Black circular spots", "Yellow halos around spots", "Premature leaf drop", "Weakened plant"],
+      homeRemedies: ["Remove infected leaves", "Baking soda spray solution", "Neem oil application", "Milk spray treatment"],
+      fertilizer: ["Use rose-specific fertilizer", "Apply balanced nutrients", "Boost with potassium"],
+      pesticide: ["Apply fungicide with myclobutanil", "Use triforine products", "Spray every 7-14 days", "Begin in early spring"],
+      prevention: ["Water at base only", "Prune for air flow", "Clean up fallen leaves", "Plant resistant varieties"]
+    },
+    rust: {
+      title: "Rust Disease",
+      severity: "Moderate",
+      description: "Fungal disease with orange-brown pustules on leaf surfaces.",
+      causes: ["High humidity", "Poor air circulation", "Wet foliage", "Cool nights with warm days"],
+      symptoms: ["Orange-brown spots", "Powdery pustules", "Yellowing and leaf drop", "Stunted growth"],
+      homeRemedies: ["Remove infected leaves", "Baking soda solution spray", "Apply sulfur powder", "Improve air flow"],
+      fertilizer: ["Use potassium-rich fertilizer", "Apply compost tea", "Avoid excessive nitrogen"],
+      pesticide: ["Apply sulfur fungicide every 7-10 days", "Use myclobutanil fungicides", "Spray wettable sulfur (3g/L)", "Treat early"],
+      prevention: ["Water at soil level", "Prune for circulation", "Plant resistant varieties", "Clean up fallen leaves"]
+    },
+    botrytis: {
+      title: "Botrytis Blight (Gray Mold)",
+      severity: "Moderate",
+      description: "Fungal disease producing fuzzy gray mold on flowers and fruit.",
+      causes: ["High humidity", "Poor ventilation", "Dense foliage", "Injured plant tissue"],
+      symptoms: ["Gray fuzzy mold", "Brown spots on flowers", "Fruit rot", "Stem lesions"],
+      homeRemedies: ["Remove infected parts", "Increase air circulation", "Reduce humidity", "Apply cinnamon powder"],
+      fertilizer: ["Avoid high nitrogen", "Use balanced fertilizer", "Apply calcium supplements"],
+      pesticide: ["Apply iprodione fungicide", "Use fenhexamid products", "Spray preventatively", "Rotate fungicides"],
+      prevention: ["Improve ventilation", "Avoid overcrowding", "Remove dead tissue", "Water in morning"]
+    },
+    fusariumWilt: {
+      title: "Fusarium Wilt",
+      severity: "Very High",
+      description: "Soil-borne fungal disease causing wilting and vascular browning.",
+      causes: ["Contaminated soil", "Infected seeds", "Warm soil temperatures", "Plant stress"],
+      symptoms: ["Wilting of lower leaves", "Yellow leaves on one side", "Brown vascular tissue", "Plant death"],
+      homeRemedies: ["Remove infected plants", "Solarize soil", "Use disease-free seeds", "Add beneficial fungi"],
+      fertilizer: ["Apply balanced fertilizer", "Use organic compost", "Avoid high nitrogen"],
+      pesticide: ["No effective chemical cure", "Use biological controls", "Apply preventive fungicides", "Focus on prevention"],
+      prevention: ["Use resistant varieties", "Practice crop rotation", "Sterilize tools", "Improve drainage"]
+    },
+    bacterialBlight: {
+      title: "Bacterial Blight",
+      severity: "High",
+      description: "Bacterial disease causing rapid death of plant tissue, often water-soaked in appearance.",
+      causes: ["Contaminated water", "Infected tools", "Insect vectors", "Wounds in plants"],
+      symptoms: ["Water-soaked lesions", "Rapid tissue death", "Brown spots", "Leaf drop"],
+      homeRemedies: ["Remove infected parts", "Sterilize tools", "Copper spray application", "Improve air flow"],
+      fertilizer: ["Avoid over-fertilizing", "Use balanced nutrients", "Apply calcium"],
+      pesticide: ["Apply copper bactericide", "Use streptomycin (where legal)", "Spray preventatively", "Follow label rates"],
+      prevention: ["Use disease-free plants", "Avoid overhead watering", "Control insects", "Sanitize tools"]
+    },
+    fireBlight: {
+      title: "Fire Blight",
+      severity: "Very High",
+      description: "Bacterial disease causing branches to look scorched or burnt.",
+      causes: ["Bacterial infection", "Insect transmission", "Warm wet springs", "Hail damage"],
+      symptoms: ["Scorched appearance", "Blackened branches", "Oozing cankers", "Shepherd's crook shape"],
+      homeRemedies: ["Prune 12 inches below symptoms", "Disinfect tools between cuts", "Remove blighted fruit", "Burn infected material"],
+      fertilizer: ["Avoid high nitrogen in spring", "Use slow-release fertilizer", "Balanced nutrients only"],
+      pesticide: ["Apply streptomycin during bloom", "Use copper sprays dormant season", "Bordeaux mixture", "Professional treatment recommended"],
+      prevention: ["Plant resistant varieties", "Prune properly", "Avoid excess nitrogen", "Monitor during bloom"]
+    },
+    softRot: {
+      title: "Bacterial Soft Rot",
+      severity: "High",
+      description: "Bacterial disease causing tissues to turn soft and slimy.",
+      causes: ["High moisture", "Wounds in tissue", "High temperatures", "Poor storage"],
+      symptoms: ["Soft watery tissue", "Foul odor", "Slimy texture", "Rapid decay"],
+      homeRemedies: ["Remove affected areas", "Improve drainage", "Reduce humidity", "Ensure good air flow"],
+      fertilizer: ["Avoid over-fertilizing", "Use calcium-rich formulas", "Balanced nutrients"],
+      pesticide: ["No effective chemical treatment", "Focus on prevention", "Copper sprays may help prevent", "Remove infected material"],
+      prevention: ["Avoid wounding plants", "Improve ventilation", "Control moisture", "Harvest carefully"]
+    },
+    leafSpot: {
+      title: "Bacterial Leaf Spot",
+      severity: "Moderate",
+      description: "Bacterial disease creating dark, water-soaked spots on foliage.",
+      causes: ["High humidity", "Overhead watering", "Poor air circulation", "Contaminated tools"],
+      symptoms: ["Dark water-soaked spots", "Yellow halos", "Leaf drop", "Stunted growth"],
+      homeRemedies: ["Remove infected leaves", "Improve air circulation", "Copper spray", "Avoid overhead watering"],
+      fertilizer: ["Balanced NPK fertilizer", "Avoid excessive nitrogen", "Apply calcium"],
+      pesticide: ["Apply copper bactericide", "Use streptomycin (where legal)", "Spray preventatively", "Rotate products"],
+      prevention: ["Water at soil level", "Space plants properly", "Sterilize tools", "Use disease-free seeds"]
+    },
+    mosaicVirus: {
+      title: "Mosaic Virus",
+      severity: "High",
+      description: "Viral disease causing mottled, discolored patterns on leaves.",
+      causes: ["Aphid transmission", "Infected seeds", "Contaminated tools", "Contact with infected plants"],
+      symptoms: ["Mottled leaf patterns", "Yellow and green patches", "Stunted growth", "Distorted leaves"],
+      homeRemedies: ["Remove infected plants immediately", "Control aphid populations", "Disinfect tools", "Isolate healthy plants"],
+      fertilizer: ["Maintain balanced nutrition", "Use complete fertilizer", "Boost plant health"],
+      pesticide: ["No cure available", "Control aphid vectors", "Use insecticidal soap", "Apply neem oil for aphids"],
+      prevention: ["Use certified disease-free seeds", "Control aphids", "Remove infected plants", "Sanitize tools regularly"]
+    },
+    tswv: {
+      title: "Tomato Spotted Wilt Virus",
+      severity: "Very High",
+      description: "Viral disease causing necrotic spots and rings on leaves and fruit.",
+      causes: ["Thrips transmission", "Infected transplants", "Nearby infected plants", "Weed hosts"],
+      symptoms: ["Necrotic spots and rings", "Bronze discoloration", "Stunted growth", "Fruit rings"],
+      homeRemedies: ["Remove infected plants", "Control thrips", "Remove weeds", "Use reflective mulch"],
+      fertilizer: ["Maintain plant vigor", "Balanced fertilization", "Avoid stress"],
+      pesticide: ["No cure available", "Control thrips with spinosad", "Apply insecticides for vectors", "Use systemic insecticides"],
+      prevention: ["Use resistant varieties", "Control thrips populations", "Remove weeds", "Use insect barriers"]
+    },
+    leafCurl: {
+      title: "Leaf Curl",
+      severity: "Moderate",
+      description: "Fungal or viral disease causing leaves to curl and distort.",
+      causes: ["Fungal infection", "Aphid-transmitted viruses", "Cool wet weather", "Poor nutrition"],
+      symptoms: ["Curled distorted leaves", "Reddish or purple discoloration", "Thickened leaves", "Reduced fruit"],
+      homeRemedies: ["Remove affected leaves", "Improve air circulation", "Neem oil spray", "Control aphids"],
+      fertilizer: ["Balanced NPK fertilizer", "Avoid excess nitrogen", "Apply micronutrients"],
+      pesticide: ["Apply fungicide in dormant season", "Use copper spray", "Control aphids with insecticides", "Spray in late fall"],
+      prevention: ["Apply dormant sprays", "Control aphids early", "Prune for air flow", "Plant resistant varieties"]
+    },
+    blossomEndRot: {
+      title: "Blossom End Rot",
+      severity: "Moderate",
+      description: "Physiological disorder caused by calcium deficiency, not a disease.",
+      causes: ["Calcium deficiency", "Inconsistent watering", "High nitrogen", "Rapid growth"],
+      symptoms: ["Dark sunken patches on fruit bottom", "Leathery brown spots", "Premature fruit drop", "Rotting"],
+      homeRemedies: ["Maintain consistent watering", "Add crushed eggshells to soil", "Mulch to retain moisture", "Water deeply and regularly"],
+      fertilizer: ["Apply calcium nitrate", "Use lime for calcium", "Avoid high nitrogen", "Balanced fertilization"],
+      pesticide: ["Not a disease - no pesticide needed", "Focus on calcium supplementation", "Foliar calcium spray", "Soil amendments"],
+      prevention: ["Consistent watering schedule", "Mulch around plants", "Test and amend soil", "Avoid over-fertilizing"]
+    },
+    chlorosis: {
+      title: "Chlorosis",
+      severity: "Moderate",
+      description: "Nutrient deficiency causing yellowing of leaves while veins remain green.",
+      causes: ["Iron deficiency", "High soil pH", "Poor drainage", "Nutrient imbalance"],
+      symptoms: ["Yellow leaves with green veins", "Stunted growth", "Leaf drop", "Poor flowering"],
+      homeRemedies: ["Apply iron-rich compost", "Adjust soil pH", "Improve drainage", "Add organic matter"],
+      fertilizer: ["Apply iron chelate", "Use acidic fertilizer", "Add sulfur to lower pH", "Foliar iron spray"],
+      pesticide: ["Not a disease - no pesticide needed", "Focus on nutrient correction", "Soil amendments", "pH adjustment"],
+      prevention: ["Test soil pH regularly", "Maintain proper pH (6.0-6.5)", "Ensure good drainage", "Regular fertilization"]
+    },
+    aphids: {
+      title: "Aphid Infestation",
+      severity: "Moderate",
+      description: "Small sap-sucking insects that can transmit viruses and weaken plants.",
+      causes: ["Warm weather", "New tender growth", "Lack of natural predators", "Stressed plants"],
+      symptoms: ["Clusters of small insects", "Curled leaves", "Sticky honeydew", "Sooty mold"],
+      homeRemedies: ["Spray with water jet", "Apply soapy water (1 tsp soap/L)", "Introduce ladybugs", "Use garlic spray"],
+      fertilizer: ["Avoid excessive nitrogen", "Use balanced fertilizer", "Strengthen plants"],
+      pesticide: ["Apply neem oil (5ml/L)", "Use insecticidal soap", "Spray pyrethrin", "Apply systemic insecticides for severe cases"],
+      prevention: ["Encourage beneficial insects", "Regular monitoring", "Remove infested parts", "Companion planting"]
+    }
+  };
+
+  // Show uploaded image preview
+  document.getElementById('plantImage').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('imagePreview').src = event.target.result;
+        document.getElementById('imagePreviewContainer').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // POPUP LOGIC
+  function openDiseaseModal(key) {
+    const data = diseaseData[key];
+    if (!data) return;
+
+    document.getElementById('diseaseTitle').textContent = data.title;
+    document.getElementById('diseaseSubtitle').textContent = data.description;
+
+    let sevClass = data.severity === 'High' ? 'severity-high' : 'severity-moderate';
+    if (data.severity === 'Very High') sevClass = 'severity-very-high';
+
+    const contentHtml = `
+      <div class="p-4">
+        <div class="section-box d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Severity Status</h5>
+          <span class="badge-severity ${sevClass}">${data.severity} Risk</span>
+        </div>
+        <div class="section-box">
+          <h5 class="text-success">🔍 Symptoms</h5>
+          <ul class="mb-0 mt-2">${data.symptoms.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>
+        <div class="section-box">
+          <h5 class="text-danger">🧪 Treatment</h5>
+          <p class="mt-2"><strong>Pesticide:</strong> ${data.pesticide.join(', ')}</p>
+          <p class="mb-0"><strong>Fertilizer:</strong> ${data.fertilizer.join(', ')}</p>
+        </div>
+      </div>`;
+
+    document.getElementById('diseaseContent').innerHTML = contentHtml;
+    new bootstrap.Modal(document.getElementById('diseaseModal')).show();
+  }
+
+  // DETECTION LOGIC (SPLIT SCREEN LAYOUT)
+  async function detectDisease(event) {
+    const fileInput = document.getElementById('plantImage');
+    const file = fileInput.files[0];
+    const errorDiv = document.getElementById('uploadError');
+    const btnText = document.getElementById('detectBtnText');
+    const btnLoading = document.getElementById('detectBtnLoading');
+
+    // Reset error
+    errorDiv.style.display = 'none';
+
+    // Validate file
+    if (!file) {
+      errorDiv.textContent = 'Please select an image first!';
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      errorDiv.textContent = 'Please upload a valid image file!';
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      errorDiv.textContent = 'Image file is too large. Please use an image under 10MB.';
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    // Show loading state
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+
+    try {
+      // Call Flask backend API for disease detection
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/diseases/detect', {
+        method: 'POST',
+        body: formData
+      });
+
+      btnText.style.display = 'inline-block';
+      btnLoading.style.display = 'none';
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Disease detection failed');
+      }
+
+      const result = await response.json();
+
+      // Make upload section compact and show results section
+      document.getElementById('uploadSection').classList.add('compact');
+      document.getElementById('resultsSection').classList.add('show');
+      
+      // Scroll to results
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      if (result.success && result.data) {
+        const detectionData = result.data;
+        
+        // Display actual API response
+        showDetectedDiseaseInline({
+          disease_name: detectionData.isHealthy ? "Healthy Plant" : detectionData.title,
+          confidence: detectionData.probability || detectionData.confidence || 100,
+          severity: detectionData.severity || "Unknown",
+          description: detectionData.description || detectionData.message || "",
+          symptoms: detectionData.symptoms || [],
+          treatment: {
+            immediate: detectionData.homeRemedies ? detectionData.homeRemedies[0] : detectionData.treatment?.immediate || "Consult plant care guide",
+            pesticide: detectionData.pesticide ? detectionData.pesticide[0] : detectionData.treatment?.pesticide || "N/A",
+            fertilizer: detectionData.fertilizer ? detectionData.fertilizer[0] : detectionData.treatment?.fertilizer || "Balanced NPK",
+            prevention: detectionData.prevention ? detectionData.prevention[0] : detectionData.treatment?.prevention || "Regular monitoring"
+          }
+        });
+
+        // Save to disease history
+        const fileReader = new FileReader();
+        fileReader.onload = function(e) {
+          const base64String = e.target.result.split(',')[1]; // Get base64 part
+          const diseaseType = detectionData.isHealthy ? "Healthy" : (detectionData.type || "Unknown");
+          saveDiseaseToHistory({
+            name: detectionData.isHealthy ? "Healthy" : detectionData.title,
+            type: diseaseType,
+            confidence: detectionData.probability || detectionData.confidence || 100,
+            symptoms: detectionData.symptoms ? detectionData.symptoms.join(", ") : "No symptoms detected",
+            treatment: detectionData.treatment || { immediate: "No treatment needed", pesticide: "N/A", fertilizer: "N/A", prevention: "Regular monitoring" },
+            prevention: detectionData.prevention ? detectionData.prevention.join(", ") : "Regular monitoring"
+          }, base64String, file.name);
+        };
+        fileReader.readAsDataURL(file);
+      } else {
+        errorDiv.textContent = result.message || 'Failed to process disease detection result';
+        errorDiv.style.display = 'block';
+      }
+
+    } catch (error) {
+      console.error('Detection error:', error);
+      btnText.style.display = 'inline-block';
+      btnLoading.style.display = 'none';
+      errorDiv.textContent = `Failed to detect disease: ${error.message}`;
+      errorDiv.style.display = 'block';
+    }
+  }
+
+  function showDetectedDiseaseInline(diseaseResult) {
+    // Determine severity class
+    let sevClass = 'severity-moderate';
+    if (diseaseResult.severity === 'High') sevClass = 'severity-high';
+    if (diseaseResult.severity === 'Very High') sevClass = 'severity-very-high';
+
+    // Confidence color
+    const confidenceColor = diseaseResult.confidence >= 80 ? '#4caf50' : 
+                           diseaseResult.confidence >= 60 ? '#ff9800' : '#f44336';
+
+    // Low confidence warning
+    const lowConfidenceWarning = diseaseResult.confidence <= 40 ? `
+      <div style="padding: 15px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; margin-bottom: 20px;">
+        <strong style="color: #e65100;">⚠️ Low Confidence Result</strong>
+        <p style="margin: 8px 0 0 0; color: #e65100; font-size: 0.95rem;">This disease detection has a confidence level of ${diseaseResult.confidence}%. The result may not be accurate. Please provide a clearer image of the affected plant area for better diagnosis.</p>
+      </div>
+    ` : '';
+
+    const resultHTML = `
+      <h4>${diseaseResult.disease_name}</h4>
+      <p style="color: #666; margin-bottom: 20px;">${diseaseResult.description}</p>
+      
+      <div style="text-align: center; padding: 12px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 8px; margin-bottom: 20px;">
+        <small style="color: ${confidenceColor}; font-weight: 600;">Confidence: ${diseaseResult.confidence}%</small>
+      </div>
+
+      ${lowConfidenceWarning}
+      <div class="section-box d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Severity Status</h5>
+        <span class="badge-severity ${sevClass}">${diseaseResult.severity} Risk</span>
+      </div>
+
+      <div class="section-box">
+        <h5 class="text-success">🔍 Symptoms Detected</h5>
+        <ul class="mb-0 mt-2">
+          ${diseaseResult.symptoms.map(s => `<li>${s}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="section-box">
+        <h5 class="text-primary">⚡ Immediate Action</h5>
+        <p class="mb-0 mt-2">${diseaseResult.treatment.immediate}</p>
+      </div>
+
+      <div class="section-box">
+        <h5 class="text-danger">🧪 Treatment Plan</h5>
+        <p class="mt-2"><strong>Pesticide:</strong> ${diseaseResult.treatment.pesticide}</p>
+        <p><strong>Fertilizer:</strong> ${diseaseResult.treatment.fertilizer}</p>
+        <p class="mb-0"><strong>Prevention:</strong> ${diseaseResult.treatment.prevention}</p>
+      </div>
+
+      <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 8px;">
+        <small><strong>💡 Tip:</strong> Always test treatments on a small area first and follow product label instructions carefully.</small>
+      </div>
+    `;
+
+    document.getElementById('resultCard').innerHTML = resultHTML;
+  }
+
+  // ========== DISEASE HISTORY FUNCTIONS ==========
+
+  /**
+   * Load and display user's recent disease identifications
+   */
+  async function loadRecentDiseaseHistory() {
+    try {
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        console.log('No user logged in, skipping disease history load');
+        return;
+      }
+
+      const userId = currentUser.id;
+      const response = await fetch(`/api/diseases/history/recent/${userId}?count=4`);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch recent disease history');
+        return;
+      }
+
+      const result = await response.json();
+      
+      if (!result.success || !result.data || result.data.length === 0) {
+        console.log('No disease history available');
+        return;
+      }
+
+      displayRecentDiseases(result.data, result.total);
+    } catch (error) {
+      console.error('Error loading disease history:', error);
+    }
+  }
+
+  /**
+   * Display recent diseases in the UI
+   */
+  function displayRecentDiseases(diseases, totalCount) {
+    const container = document.getElementById('recentDiseaseSearchesContainer');
+    const grid = document.getElementById('recentDiseaseSearchesGrid');
+    const viewAllButton = document.getElementById('viewAllDiseaseButtonContainer');
+
+    if (!container || !grid) {
+      console.error('Disease history containers not found');
+      return;
+    }
+
+    // Clear existing diseases
+    grid.innerHTML = '';
+
+    // Create disease cards
+    diseases.forEach(disease => {
+      const card = document.createElement('div');
+      card.className = 'col-md-3 col-sm-6';
+      card.innerHTML = `
+        <div class="card h-100 shadow-sm" style="border-radius: 15px;">
+          <div style="position: relative; height: 200px; overflow: hidden; border-radius: 15px 15px 0 0;">
+            <img src="data:image/jpeg;base64,${disease.image_base64 || ''}" 
+                 alt="${disease.disease_name}" 
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 onerror="this.src='disease pics/placeholder.jpg'">
+            <span class="badge bg-warning" style="position: absolute; top: 10px; right: 10px;">
+              ${Math.round(disease.confidence || 0)}%
+            </span>
+          </div>
+          <div class="card-body">
+            <h6 class="card-title text-danger">${disease.disease_name}</h6>
+            <p class="text-muted small mb-2">${disease.disease_type || 'Unknown type'}</p>
+            <small class="text-muted d-block mb-3">
+              ${new Date(disease.identified_at).toLocaleDateString()}
+            </small>
+            <button class="btn btn-sm btn-outline-danger w-100" onclick="showDiseaseHistoryInfo(${disease.id})">
+              View Info
+            </button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Show/hide containers
+    container.style.display = 'block';
+    
+    // Show view all button if more than 4 diseases
+    if (totalCount > 4) {
+      viewAllButton.style.display = 'block';
+    } else {
+      viewAllButton.style.display = 'none';
+    }
+  }
+
+  /**
+   * Show disease info from history in modal
+   */
+  async function showDiseaseHistoryInfo(diseaseId) {
+    try {
+      const response = await fetch(`/api/diseases/history/${diseaseId}`);
+      
+      if (!response.ok) {
+        alert('Failed to load disease details');
+        return;
+      }
+
+      const result = await response.json();
+      if (!result.success || !result.data) {
+        alert('Disease not found');
+        return;
+      }
+
+      const disease = result.data;
+      
+      // Display in modal
+      const modalTitle = document.getElementById('diseaseModalTitle') || createDiseaseModal();
+      document.getElementById('diseaseModalTitle').textContent = disease.disease_name;
+      
+      const modalBody = document.getElementById('diseaseModalBody');
+      modalBody.innerHTML = `
+        <div style="text-align: center;">
+          <img src="data:image/jpeg;base64,${disease.image_base64 || ''}" 
+               alt="${disease.disease_name}"
+               style="max-width: 100%; max-height: 300px; border-radius: 10px; margin-bottom: 20px;"
+               onerror="this.src='disease pics/placeholder.jpg'">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <h5 class="text-danger">${disease.disease_name}</h5>
+          <p style="color: #666; margin: 5px 0;">Type: <strong>${disease.disease_type || 'Unknown'}</strong></p>
+          <span class="badge bg-warning" style="font-size: 1rem;">Confidence: ${Math.round(disease.confidence || 0)}%</span>
+        </div>
+        
+        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <h6>Disease Information</h6>
+          <p>${disease.disease_info || 'No additional information available'}</p>
+        </div>
+        
+        <div style="color: #666; font-size: 0.9rem;">
+          <p><strong>Detected on:</strong> ${new Date(disease.identified_at).toLocaleString()}</p>
+        </div>
+      `;
+
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById('diseaseHistoryModal'));
+      modal.show();
+      
+      // Store disease data
+      window.currentHistoryDisease = disease;
+    } catch (error) {
+      console.error('Error loading disease history info:', error);
+      alert('Error loading disease details');
+    }
+  }
+
+  /**
+   * Open disease history view all modal
+   */
+  async function openDiseaseHistoryModal() {
+    try {
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        alert('Please login first');
+        return;
+      }
+
+      const userId = currentUser.id;
+      const response = await fetch(`/api/diseases/history/user/${userId}`);
+      
+      if (!response.ok) {
+        alert('Failed to load disease history');
+        return;
+      }
+
+      const result = await response.json();
+      if (!result.success || !result.data) {
+        alert('No disease history found');
+        return;
+      }
+
+      displayDiseaseHistoryList(result.data);
+      
+      const modal = new bootstrap.Modal(document.getElementById('diseaseHistoryViewAllModal'));
+      modal.show();
+    } catch (error) {
+      console.error('Error loading disease history modal:', error);
+      alert('Error loading disease history');
+    }
+  }
+
+  /**
+   * Display disease history list in modal
+   */
+  function displayDiseaseHistoryList(diseases) {
+    const historyList = document.getElementById('diseaseHistoryList');
+    historyList.innerHTML = '';
+
+    if (diseases.length === 0) {
+      historyList.innerHTML = '<p class="text-center text-muted">No disease detections yet</p>';
+      return;
+    }
+
+    const html = `
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Disease Name</th>
+              <th>Type</th>
+              <th>Confidence</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${diseases.map(disease => `
+              <tr>
+                <td><strong style="color: #d32f2f;">${disease.disease_name}</strong></td>
+                <td>${disease.disease_type || '-'}</td>
+                <td><span class="badge bg-warning">${Math.round(disease.confidence || 0)}%</span></td>
+                <td>${new Date(disease.identified_at).toLocaleDateString()}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-danger" onclick="showDiseaseHistoryInfo(${disease.id})">
+                    View
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    historyList.innerHTML = html;
+  }
+
+  /**
+   * Save disease identification to history (called after successful detection)
+   */
+  async function saveDiseaseToHistory(diseaseData, imageBase64, imageFilename) {
+    try {
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        console.log('No user logged in, skipping history save');
+        return;
+      }
+
+      const payload = {
+        user_id: currentUser.id,
+        disease_name: diseaseData.name || '',
+        disease_type: diseaseData.type || '',
+        confidence: diseaseData.confidence || 0,
+        image_base64: imageBase64,
+        image_filename: imageFilename || 'disease.jpg',
+        disease_info: JSON.stringify({
+          symptoms: diseaseData.symptoms || '',
+          treatment: diseaseData.treatment || {},
+          prevention: diseaseData.prevention || ''
+        })
+      };
+
+      const response = await fetch('/api/diseases/history/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        console.log('Disease detection saved to history');
+        // Reload recent diseases display
+        loadRecentDiseaseHistory();
+      } else {
+        console.error('Failed to save disease to history');
+      }
+    } catch (error) {
+      console.error('Error saving disease to history:', error);
+    }
+  }
+
+  /**
+   * Create disease history modals if they don't exist
+   */
+  function createDiseaseModal() {
+    if (!document.getElementById('diseaseHistoryModal')) {
+      const modalsHTML = `
+        <div class="modal fade" id="diseaseHistoryModal" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="diseaseModalTitle">Disease Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body" id="diseaseModalBody">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade" id="diseaseHistoryViewAllModal" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Disease Detection History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body" id="diseaseHistoryList">
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = modalsHTML;
+      document.body.appendChild(tempDiv.firstElementChild);
+      document.body.appendChild(tempDiv.lastElementChild);
+    }
+    return true;
+  }
+
+  // Load disease history when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    createDiseaseModal();
+    loadRecentDiseaseHistory();
+    loadProfileImageInNavbar();
+  });
+
+  function loadProfileImageInNavbar() {
+    const profileContainer = document.getElementById('navbarProfile');
+    if (!profileContainer) return;
+    
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (!currentUser) {
+        profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Login</a>';
+        return;
+      }
+      
+      const profileImageUrl = localStorage.getItem('profileImageUrl');
+      const userName = currentUser.name || 'User';
+      const userEmail = currentUser.email || '';
+      const userPhone = currentUser.phone || 'Not provided';
+      const userCity = currentUser.city || 'Not specified';
+      const userState = currentUser.state || '';
+      
+      let avatarHtml = '';
+      if (profileImageUrl) {
+        avatarHtml = `<img src="${profileImageUrl}" alt="${userName}" onerror="this.src='https://via.placeholder.com/40x40?text=${userName.charAt(0).toUpperCase()}'">`;
+      } else {
+        const initials = userName.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+        avatarHtml = `<div style="background: linear-gradient(135deg, #66bb6a, #2e7d32); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem; width: 100%; height: 100%;">${initials}</div>`;
+      }
+      
+      let avatarHtmlDropdown = '';
+      if (profileImageUrl) {
+        avatarHtmlDropdown = `<img src="${profileImageUrl}" alt="${userName}" onerror="this.src='https://via.placeholder.com/50x50?text=${userName.charAt(0).toUpperCase()}'">`;
+      } else {
+        const initials = userName.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+        avatarHtmlDropdown = `<div style="background: linear-gradient(135deg, #66bb6a, #2e7d32); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; width: 100%; height: 100%;">${initials}</div>`;
+      }
+      
+      profileContainer.innerHTML = `
+        <div class="profile-image-navbar" id="profileIconToggle" onclick="toggleProfileDropdown(event)">
+          ${avatarHtml}
+        </div>
+        <span class="nav-link" style="margin-left: 0; cursor: pointer;" onclick="toggleProfileDropdown(event)">${userName}</span>
+        
+        <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
+          <div class="profile-dropdown-header">
+            <div class="profile-dropdown-avatar">
+              ${avatarHtmlDropdown}
+            </div>
+            <div class="profile-dropdown-info">
+              <div class="profile-dropdown-name">${userName}</div>
+              <div class="profile-dropdown-email">${userEmail}</div>
+            </div>
+          </div>
+          
+          <div class="profile-dropdown-body">
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">📞 Phone</span>
+              <span class="profile-detail-value">${userPhone}</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">📍 Location</span>
+              <span class="profile-detail-value">${userCity}${userState ? ', ' + userState : ''}</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">✅ Status</span>
+              <span class="profile-detail-value" style="color: #4caf50; font-weight: 600;">Verified</span>
+            </div>
+          </div>
+          
+          <div class="profile-dropdown-footer">
+            <a href="profile.html" class="profile-btn-view">View Profile</a>
+            <a href="#" class="profile-btn-logout" onclick="logoutUser(event)">Logout</a>
+          </div>
+        </div>
+      `;
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        const profileContainer = document.getElementById('navbarProfile');
+        if (dropdown && profileContainer && !profileContainer.contains(event.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error loading profile image:', error);
+      profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Profile</a>';
+    }
+  }
+
+  function toggleProfileDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('active');
+    }
+  }
+
+  function logoutUser(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('profileImageUrl');
+      window.location.href = 'index.html';
+    }
+  }
+</script>
+
+<!-- FOOTER SECTION -->
+<footer>
+  <div class="container">
+    <!-- Top Footer: 3 columns -->
+    <div class="footer-top-row">
+      <!-- Left: Contact -->
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+
+      <!-- Center: Brand -->
+      <div class="footer-col-center">
+        <span class="footer-logo">🌿 GreenSphere</span>
+      </div>
+
+      <!-- Right: Social Icons -->
+      <div class="footer-col-right">
+       <div class="social-section">
+  <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+  <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+  <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+  <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+</div>
+      
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="shared-data.js"></script>
+<script src="api-client.js"></script>
+
+</body>
+</html>

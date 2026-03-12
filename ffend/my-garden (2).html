@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Garden | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      font-family: "Segoe UI", sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: rgba(255,255,255,0.95) !important;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 1rem 0;
+      position: relative;
+      z-index: 10000;
+    }
+    .navbar-brand { font-weight: 700; color: #2e7d32 !important; font-size: 1.5rem; display: flex; align-items: center; gap: 8px; }
+    .nav-link { color: #555 !important; font-weight: 500; transition: color 0.3s; margin: 0 8px; }
+    .nav-link:hover, .nav-link.active { color: #2e7d32 !important; }
+
+    .navbar-profile {
+      display: flex; align-items: center; gap: 15px;
+      margin-left: 20px; padding-left: 20px;
+      border-left: 1px solid #e0e0e0;
+      position: relative;
+    }
+    .profile-image-navbar {
+      width: 40px; height: 40px; border-radius: 50%;
+      overflow: hidden; border: 2px solid #2e7d32;
+      cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .profile-image-navbar:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(46,125,50,0.3); }
+    .profile-image-navbar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-dropdown {
+      position: fixed; top: 65px; right: 10px;
+      background: white; border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(46,125,50,0.22);
+      min-width: 310px; display: none;
+      z-index: 999999 !important;
+      border: 1px solid #e0e0e0;
+      animation: slideDown 0.25s ease-out;
+      isolation: isolate; will-change: transform;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .profile-dropdown.active { display: block; }
+    .profile-dropdown-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white; border-radius: 13px 13px 0 0;
+      display: flex; align-items: center; gap: 15px;
+    }
+    .profile-dropdown-avatar { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 2px solid white; flex-shrink: 0; }
+    .profile-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-dropdown-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .profile-dropdown-email { font-size: 0.85rem; opacity: 0.9; }
+    .profile-dropdown-body { padding: 15px 20px; }
+    .profile-detail-row { padding: 10px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .profile-detail-row:last-child { border-bottom: none; }
+    .profile-detail-label { font-weight: 600; color: #666; font-size: 0.9rem; }
+    .profile-detail-value { color: #333; font-size: 0.9rem; text-align: right; max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-dropdown-footer { padding: 14px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; }
+    .profile-dropdown-footer a { flex: 1; padding: 10px; text-align: center; border-radius: 9px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.25s; }
+    .profile-btn-edit { background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; }
+    .profile-btn-edit:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(46,125,50,0.35); text-decoration: none; color: white; }
+    .profile-btn-logout { background: #f5f5f5; color: #f44336; border: 1px solid #f0f0f0; }
+    .profile-btn-logout:hover { background: #ffebee; text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .navbar-profile { margin-left: 0; padding-left: 0; border-left: none; margin-top: 10px; }
+      .profile-dropdown { right: auto; left: 10px; min-width: 280px; }
+    }
+
+    .garden-container { position: relative; min-height: 100vh; padding: 40px 20px; }
+    .header-section { text-align: center; margin-bottom: 50px; color: #2e7d32; }
+    .header-section h2 { font-size: 3rem; font-weight: 700; text-shadow: 0 2px 10px rgba(46,125,50,0.1); margin-bottom: 15px; }
+    .header-section p { font-size: 1.2rem; color: #666; }
+
+    .garden-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      perspective: 1000px;
+      padding: 0 20px;
+    }
+
+    .plant-card-3d {
+      position: relative; height: 420px;
+      cursor: pointer; transform-style: preserve-3d;
+      transition: transform 0.6s; z-index: 1;
+    }
+    .plant-card-3d.flipped { transform: rotateY(180deg); }
+    .card-face {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; border-radius: 15px;
+      overflow: hidden; box-shadow: 0 6px 20px rgba(46,125,50,0.12);
+    }
+    .card-front {
+      background: linear-gradient(145deg, #ffffff, #f5f5f5);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 20px;
+      border: 2px solid transparent; transition: border-color 0.3s;
+    }
+    .plant-card-3d:hover .card-front { border-color: #2e7d32; }
+    .card-back {
+      background: linear-gradient(145deg, #2e7d32, #1b5e20);
+      color: white; transform: rotateY(180deg);
+      padding: 15px; overflow-y: auto; font-size: 0.9rem;
+    }
+    .card-back h4 { font-size: 1.1rem; margin-bottom: 12px !important; }
+    .plant-image-container {
+      width: 180px; height: 180px; border-radius: 50%;
+      overflow: hidden; margin-bottom: 12px;
+      border: 4px solid #2e7d32;
+      box-shadow: 0 6px 20px rgba(46,125,50,0.25);
+      animation: float 3s ease-in-out infinite;
+      background: #f0f0f0;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    .plant-image-container img { width: 100%; height: 100%; object-fit: cover; }
+    .plant-name { font-size: 1.1rem; font-weight: 700; color: #2e7d32; margin-bottom: 6px; text-align: center; word-wrap: break-word; }
+    .plant-status-badge { background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+    .detail-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    .detail-item:last-child { border-bottom: none; }
+    .detail-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 3px; font-weight: 600; }
+    .detail-value { font-size: 0.85rem; font-weight: 500; line-height: 1.4; word-wrap: break-word; white-space: normal; overflow-wrap: break-word; }
+    .btn-update { background: white; color: #2e7d32; border: none; padding: 8px 15px; border-radius: 15px; font-weight: 600; font-size: 0.85rem; margin-top: 8px; width: calc(100% - 8px); transition: all 0.3s; }
+    .btn-update:hover { background: #f0f0f0; transform: scale(1.05); }
+    .btn-remove { background: white; color: #f44336; border: none; padding: 8px 15px; border-radius: 15px; font-weight: 600; font-size: 0.85rem; margin-top: 8px; width: calc(100% - 8px); transition: all 0.3s; }
+    .btn-remove:hover { background: #ffebee; transform: scale(1.05); }
+
+    .ai-assistant { position: fixed; bottom: 30px; right: 30px; z-index: 1000; }
+    .ai-button { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #66bb6a, #2e7d32); border: none; color: white; font-size: 1.8rem; box-shadow: 0 10px 30px rgba(46,125,50,0.4); cursor: pointer; transition: all 0.3s; animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(46,125,50,0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 15px 40px rgba(46,125,50,0.6); }
+    }
+    .ai-button:hover { transform: scale(1.1) rotate(10deg); }
+    .ai-chat-panel { position: fixed; bottom: 120px; right: 30px; width: 340px; height: 450px; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(46,125,50,0.3); display: none; flex-direction: column; overflow: hidden; z-index: 999; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .ai-chat-panel.active { display: flex; }
+    .ai-header { background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; padding: 20px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .ai-close { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+    .ai-messages { flex: 1; overflow-y: auto; padding: 20px; background: #f8f9fa; }
+    .ai-message { margin-bottom: 15px; padding: 12px 16px; border-radius: 15px; max-width: 80%; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .ai-message.bot { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); margin-right: auto; color: #2e7d32; }
+    .ai-message.user { background: linear-gradient(135deg, #2e7d32, #1b5e20); color: white; margin-left: auto; }
+    .ai-input-container { padding: 15px; background: white; border-top: 1px solid #e0e0e0; display: flex; gap: 10px; }
+    .ai-input { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 25px; outline: none; transition: border 0.3s; }
+    .ai-input:focus { border-color: #2e7d32; }
+    .ai-send { background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; border: none; padding: 12px 20px; border-radius: 25px; cursor: pointer; transition: all 0.3s; }
+    .ai-send:hover { transform: scale(1.05); }
+
+    .bottom-action-buttons { position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 100; }
+    .add-plant-btn { background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: 600; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(46,125,50,0.4); cursor: pointer; transition: all 0.3s; }
+    .add-plant-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(46,125,50,0.6); }
+
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1001; animation: fadeIn 0.3s; }
+    .modal-overlay.active { display: flex; justify-content: center; align-items: center; }
+    .plant-form-modal { background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(46,125,50,0.3); position: relative; animation: slideUp 0.3s ease-out; }
+    .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 2rem; color: #666; cursor: pointer; transition: color 0.3s; }
+    .modal-close:hover { color: #2e7d32; }
+    .modal-title { font-size: 2rem; font-weight: 700; color: #2e7d32; margin-bottom: 30px; text-align: center; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .form-label .required { color: #e53935; }
+    .form-input, .form-select { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem; transition: border-color 0.3s; outline: none; }
+    .form-input:focus, .form-select:focus { border-color: #2e7d32; }
+    .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(46,125,50,0.4); }
+
+    /* Reminder status styling */
+    .reminder-status-box {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .reminder-status-box.success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .reminder-status-box.error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    .reminder-status-box.loading { background: #f3f3f3; color: #777; border: 1px solid #ddd; }
+    .reminder-status-box.disabled { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+
+    @media (max-width: 1024px) { .garden-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .garden-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; } .plant-card-3d { height: 380px; } .ai-chat-panel { width: calc(100% - 40px); right: 20px; } .header-section h2 { font-size: 2rem; } .plant-form-modal { padding: 30px 20px; } .bottom-action-buttons { bottom: 20px; left: 15px; gap: 10px; } .add-plant-btn { padding: 12px 20px; font-size: 0.95rem; } }
+    @media (max-width: 480px) { .garden-grid { grid-template-columns: 1fr; gap: 12px; padding: 0 10px; } .plant-card-3d { height: 250px; } }
+
+    footer { background: linear-gradient(135deg, #ffffff, #f0fff0); color: #4caf50; padding: 40px 50px 25px; margin: 40px 40px 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(46,125,50,0.15), 0 8px 25px rgba(0,0,0,0.08); border: 1px solid rgba(46,125,50,0.1); position: relative; }
+    .footer-top-row { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding-bottom: 30px; }
+    .footer-col-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-col-left a { color: #4caf50; text-decoration: underline; font-size: 14px; transition: color 0.3s; }
+    .footer-col-left a:hover { color: #2e7d32; }
+    .footer-col-center { text-align: center; }
+    .footer-logo { font-size: 28px; font-weight: 700; color: #2e7d32; letter-spacing: 2px; }
+    .footer-col-right { display: flex; justify-content: flex-end; }
+    .social-section { display: flex; gap: 18px; }
+    .social-icon { width: 36px; height: 36px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #4caf50; text-decoration: none; font-size: 16px; transition: all 0.3s ease; border: 1px solid rgba(46,125,50,0.3); }
+    .social-icon:hover { background: #2e7d32; color: white; border-color: #2e7d32; transform: translateY(-3px); }
+    .footer-divider { border-color: rgba(46,125,50,0.1); margin: 0 0 20px 0; }
+    .footer-bottom { text-align: center; font-size: 12px; color: #81c784; display: flex; flex-direction: column; gap: 8px; }
+    .footer-bottom p { margin: 0; }
+    .footer-bottom-links { display: flex; justify-content: center; gap: 20px; }
+    .footer-bottom-links a { color: #81c784; text-decoration: underline; font-size: 13px; transition: color 0.3s; }
+    .footer-bottom-links a:hover { color: #4caf50; }
+    @media (max-width: 768px) { .footer-top-row { grid-template-columns: 1fr; text-align: center; gap: 25px; } .footer-col-right { justify-content: center; } .footer-bottom-links { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🌿 GreenSphere</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="identify.html">Identify</a></li>
+        <li class="nav-item"><a class="nav-link" href="disease.html">Disease</a></li>
+        <li class="nav-item"><a class="nav-link" href="nursery.html">Nurseries</a></li>
+        <li class="nav-item"><a class="nav-link active" href="my-garden.html">My Garden</a></li>
+      </ul>
+      <div class="navbar-profile" id="navbarProfile"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="garden-container">
+  <div class="header-section">
+    <h2>🌱 My Garden</h2>
+    <p>Click on any plant to view detailed care information</p>
+  </div>
+  <div class="garden-grid" id="gardenGrid"></div>
+</div>
+
+<!-- Add Plant Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+  <div class="plant-form-modal">
+    <button class="modal-close" onclick="closeAddPlantModal()">×</button>
+    <h2 class="modal-title">Add New Plant</h2>
+    <form id="addPlantForm" onsubmit="handleAddPlant(event)">
+      <div class="form-group">
+        <label class="form-label">Add Plant <span class="required">*</span></label>
+        <div style="position: relative;">
+          <input type="text" class="form-input" id="plantName" placeholder="e.g., Monstera, Cactus, Rose" required style="padding-right: 45px;">
+          <button type="button" onclick="triggerPlantNameCamera()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.5rem;color:#2e7d32;">📸</button>
+        </div>
+        <input type="file" id="plantNamePhoto" accept="image/*" capture="environment" style="display:none;" onchange="handlePlantNamePhoto(event)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status <span class="required">*</span></label>
+        <select class="form-select" id="plantStatus" required>
+          <option value="">Select status</option>
+          <option value="Thriving">Thriving</option>
+          <option value="Healthy">Healthy</option>
+          <option value="Growing">Growing</option>
+          <option value="Blooming">Blooming</option>
+          <option value="Newly Planted">Newly Planted</option>
+          <option value="Needs Attention">Needs Attention</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Soil Type <span class="required">*</span></label>
+        <input type="text" class="form-input" id="plantSoilType" placeholder="e.g., Well-draining, Loamy, Sandy, Clay" required>
+      </div>
+      <button type="submit" class="btn-submit">Add Plant</button>
+    </form>
+  </div>
+</div>
+
+<!-- Update Details Modal -->
+<div class="modal-overlay" id="updateModalOverlay" onclick="closeUpdateModalOnOverlay(event)">
+  <div class="plant-form-modal">
+    <button class="modal-close" onclick="closeUpdateModal()">×</button>
+    <h2 class="modal-title">🌿 Update Plant Details</h2>
+    <form id="updateScheduleForm" onsubmit="handleUpdateSchedule(event)">
+      <div class="form-group">
+        <label class="form-label">Scientific Name (Read-Only)</label>
+        <input type="text" class="form-input" id="updateScientificName" readonly style="background:#f5f5f5;color:#999;cursor:not-allowed;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preferred Display Name <span class="required">*</span></label>
+        <input type="text" class="form-input" id="updatePreferredName" placeholder="Give your plant a custom name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Soil Type Recommended (Read-Only)</label>
+        <textarea class="form-input" id="updateSoilType" readonly style="background:#f5f5f5;color:#999;cursor:not-allowed;resize:none;min-height:60px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Age</label>
+        <input type="text" class="form-input" id="updateAge" placeholder="e.g., 1 year, 6 months, Just planted">
+      </div>
+
+      <!-- ✅ UPDATED: Set Reminders with auto-save on checkbox click -->
+      <div class="form-group">
+        <label class="form-label">Set Reminders</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border:2px solid #e0e0e0;border-radius:10px;transition:border-color 0.3s;" id="reminderLabel">
+          <input type="checkbox" id="updateReminder" style="width:20px;height:20px;cursor:pointer;accent-color:#2e7d32;" onchange="autoSaveReminder(this)">
+          <span style="font-weight:500;color:#333;">Enable watering reminders</span>
+        </label>
+        <small style="color:#999;margin-top:6px;display:block;">
+          🌤️ Smart reminders based on live Hyderabad weather
+        </small>
+        <!-- Status message shown immediately after checkbox click -->
+        <div class="reminder-status-box" id="reminderStatusBox"></div>
+      </div>
+
+      <button type="submit" class="btn-submit">Save Plant Details</button>
+    </form>
+  </div>
+</div>
+
+<div class="bottom-action-buttons">
+  <button class="add-plant-btn" onclick="window.location.href='identify.html'">+ Add Plant</button>
+</div>
+
+<div class="ai-assistant">
+  <button class="ai-button" onclick="toggleAI()">🍃</button>
+</div>
+<div class="ai-chat-panel" id="aiPanel">
+  <div class="ai-header">
+    <span>🌿 Prakriti</span>
+    <button class="ai-close" onclick="toggleAI()">×</button>
+  </div>
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-message bot">Hello! I'm Prakriti. Ask me anything about plant care, watering schedules, or any gardening tips!</div>
+  </div>
+  <div class="ai-input-container">
+    <input type="text" class="ai-input" id="aiInput" placeholder="Ask about your plants..." onkeypress="handleKeyPress(event)">
+    <button class="ai-send" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+let selectedPhotoDataUrl = null;
+let isFirstMessage = true;
+
+function toggleAI() { document.getElementById('aiPanel').classList.toggle('active'); }
+function triggerPlantNameCamera() { document.getElementById('plantNamePhoto').click(); }
+function handlePlantNamePhoto(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) { selectedPhotoDataUrl = e.target.result; alert('📷 Photo captured!'); };
+    reader.readAsDataURL(file);
+  }
+}
+
+function generatePlantImage(plantName) {
+  const plantImages = {
+    'cactus':'my garden pics/cactus.webp','succulent':'my garden pics/succulent.jpg',
+    'fern':'my garden pics/fern.webp','palm':'my garden pics/palm.webp',
+    'orchid':'my garden pics/orchid.jpg','rose':'my garden pics/rose.jpg',
+    'monstera':'my garden pics/monstera.jpg','pothos':'my garden pics/pothos.jpg',
+    'lavender':'my garden pics/lavender.jpg','jasmine':'my garden pics/jasmine.jpg',
+    'lotus':'my garden pics/lotus.webp'
+  };
+  const nameLower = plantName.toLowerCase();
+  for (let key in plantImages) { if (nameLower.includes(key)) return plantImages[key]; }
+  return 'https://images.unsplash.com/photo-1466781783364-36c955e42a7f?w=400&h=400&fit=crop';
+}
+
+function generateNextWatering(soilType, status) {
+  let days = 7;
+  const soilLower = soilType.toLowerCase();
+  if (soilLower.includes('sandy') || soilLower.includes('well-drain')) days = 3;
+  else if (soilLower.includes('clay')) days = 10;
+  else if (soilLower.includes('loamy') || soilLower.includes('loam')) days = 5;
+  else if (soilLower.includes('peat') || soilLower.includes('organic')) days = 6;
+  if (status.toLowerCase().includes('newly') || status.toLowerCase().includes('needs')) days = Math.max(1, Math.floor(days / 2));
+  if (days === 1) return 'Tomorrow';
+  if (days === 2) return 'After 2 days';
+  if (days <= 7) return 'After ' + days + ' days';
+  return 'Weekly';
+}
+
+async function fetchPlantImage(plantName) {
+  try {
+    const response = await fetch('https://source.unsplash.com/400x400/?' + encodeURIComponent(plantName) + ',plant');
+    return response.url;
+  } catch (error) { return generatePlantImage(plantName); }
+}
+
+function openAddPlantModal() { document.getElementById('modalOverlay').classList.add('active'); }
+function closeAddPlantModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.getElementById('addPlantForm').reset();
+  selectedPhotoDataUrl = null;
+  document.getElementById('plantNamePhoto').value = '';
+}
+function closeModalOnOverlay(event) { if (event.target.id === 'modalOverlay') closeAddPlantModal(); }
+
+async function handleAddPlant(event) {
+  event.preventDefault();
+  const name = document.getElementById('plantName').value.trim();
+  const status = document.getElementById('plantStatus').value;
+  const soilType = document.getElementById('plantSoilType').value.trim();
+  const submitBtn = event.target.querySelector('.btn-submit');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Validating...'; submitBtn.disabled = true;
+  try {
+    const currentUser = getCurrentUser();
+    if (!currentUser) { alert('❌ Please login first to add plants to your garden.'); submitBtn.textContent = originalText; submitBtn.disabled = false; return; }
+    const isValidPlant = await validatePlantName(name);
+    if (!isValidPlant) { alert('❌ "' + name + '" is not a recognized plant.'); submitBtn.textContent = originalText; submitBtn.disabled = false; return; }
+    submitBtn.textContent = 'Adding plant...';
+    let imageUrl = selectedPhotoDataUrl || null;
+    if (!imageUrl) { try { imageUrl = await fetchPlantImage(name); } catch (e) { imageUrl = null; } }
+    const plantData = { name, image_url: imageUrl, soil: soilType, water: generateNextWatering(soilType, status), best_light: 'Bright Indirect', status, addedAt: new Date().toISOString() };
+    addPlantToGarden(currentUser.email, plantData);
+    renderPlants(); closeAddPlantModal(); selectedPhotoDataUrl = null;
+    setTimeout(() => { alert('🌱 ' + name + ' has been successfully added to your garden!'); }, 300);
+  } catch (error) { alert('❌ Error adding plant. ' + error.message); }
+  finally { submitBtn.textContent = originalText; submitBtn.disabled = false; }
+}
+
+async function validatePlantName(plantName) {
+  try {
+    try {
+      const response = await fetch('/api/plants/validate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({plant_name:plantName}) });
+      if (response.ok) { const d = await response.json(); if (d.success && d.data) return d.data.valid === true; }
+    } catch (e) {}
+    const commonPlants = ['rose','tomato','basil','mint','lavender','sunflower','orchid','fern','cactus','aloe vera','ivy','jasmine','tulip','daisy','lily','hibiscus','marigold','geranium','iris','poppy','thyme','rosemary','sage','oregano','parsley','cilantro','dill','lettuce','spinach','kale','carrot','potato','onion','garlic','pepper','cucumber','pumpkin','strawberry','blueberry','apple tree','orange tree','lemon tree','avocado','banana','mango','snake plant','monstera','pothos','philodendron','peace lily','spider plant','dracaena','fiddle leaf fig','rubber plant','boston fern','areca palm','money plant','jade plant','succulent','echeveria','calathea','bird of paradise','hydrangea','magnolia','tulsi','holy basil','lemongrass','ginger','turmeric'];
+    const lowerName = plantName.toLowerCase();
+    if (commonPlants.some(p => lowerName.includes(p) || p.includes(lowerName))) return true;
+    const nonPlant = ['animal','cat','dog','bird','fish','bug','car','house','food','water','rock','stone','metal','plastic','paper'];
+    if (nonPlant.some(k => lowerName.includes(k))) return false;
+    return plantName.length >= 2 && /[a-zA-Z]/.test(plantName);
+  } catch (e) { return false; }
+}
+
+function renderPlants() {
+  const grid = document.getElementById('gardenGrid');
+  let currentUser;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser')); } catch (e) { currentUser = null; }
+  if (!currentUser) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;"><p>Please login to view your garden</p></div>';
+    return;
+  }
+  loadGardenPlantsFromDatabase(currentUser.id);
+}
+
+async function loadGardenPlantsFromDatabase(userId) {
+  try {
+    const response = await fetch(`/api/garden/garden/user/${userId}?limit=100`);
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to fetch plants');
+    const grid = document.getElementById('gardenGrid');
+    const gardenPlants = result.data || [];
+    if (gardenPlants.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;"><p>Your garden is empty! Click "Add Plant" to get started.</p></div>';
+      return;
+    }
+    grid.innerHTML = gardenPlants.map((plant, index) => {
+      const imageSrc = plant.image_base64
+        ? `data:image/jpeg;base64,${plant.image_base64}`
+        : `https://via.placeholder.com/280x280?text=${encodeURIComponent(plant.plant_name)}`;
+      return `
+        <div class="plant-card-3d" onclick="flipCard(${index})">
+          <div class="card-face card-front">
+            <div class="plant-image-container">
+              <img src="${imageSrc}" alt="${plant.plant_name}"
+                onerror="this.src='https://via.placeholder.com/280x280?text=Plant'"
+                style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="plant-name">${plant.preferred_name || plant.plant_name}</div>
+            <div class="plant-status-badge">In Garden</div>
+          </div>
+          <div class="card-face card-back">
+            <h4 style="margin-bottom:20px;font-weight:700;">${plant.preferred_name || plant.plant_name}</h4>
+            <div class="detail-item"><div class="detail-label">Scientific Name</div><div class="detail-value">${plant.scientific_name || 'N/A'}</div></div>
+            <div class="detail-item"><div class="detail-label">💧 Watering</div><div class="detail-value">${plant.watering_capacity || 'Regular watering'}</div></div>
+            <div class="detail-item"><div class="detail-label">🌱 Soil Type</div><div class="detail-value">${plant.soil_type || 'Well-draining soil'}</div></div>
+            <div class="detail-item"><div class="detail-label">☀️ Sunlight</div><div class="detail-value">${plant.sunlight_requirements || 'Indirect light'}</div></div>
+            <div class="detail-item"><div class="detail-label">🌡️ Temperature</div><div class="detail-value">${plant.temperature_range || 'Room temperature'}</div></div>
+            <div class="detail-item"><div class="detail-label">💨 Humidity</div><div class="detail-value">${plant.humidity_level || 'Moderate humidity'}</div></div>
+            <div class="detail-item"><div class="detail-label">🌿 Fertilizer</div><div class="detail-value">${plant.fertilizer_needs || 'Monthly during growing season'}</div></div>
+            <div class="detail-item"><div class="detail-label">📅 Added</div><div class="detail-value">${new Date(plant.added_at).toLocaleDateString()}</div></div>
+            <button class="btn-update" onclick="updatePlantDetails(event, ${plant.id})">Update Details</button>
+            <button class="btn-remove" onclick="removePlantFromGarden(event, ${plant.id})">Remove</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (error) {
+    document.getElementById('gardenGrid').innerHTML =
+      `<div style="grid-column:1/-1;text-align:center;padding:40px;"><p>Error loading your garden. ${error.message}</p></div>`;
+  }
+}
+
+function flipCard(index) {
+  document.querySelectorAll('.plant-card-3d')[index].classList.toggle('flipped');
+}
+
+function closeUpdateModal() {
+  document.getElementById('updateModalOverlay').classList.remove('active');
+  document.getElementById('updateScheduleForm').reset();
+  // Reset reminder status box
+  const statusBox = document.getElementById('reminderStatusBox');
+  statusBox.style.display = 'none';
+  statusBox.className = 'reminder-status-box';
+  statusBox.textContent = '';
+  // Reset label border
+  document.getElementById('reminderLabel').style.borderColor = '#e0e0e0';
+  window.currentUpdatePlantId = null;
+}
+function closeUpdateModalOnOverlay(event) {
+  if (event.target.id === 'updateModalOverlay') closeUpdateModal();
+}
+
+// ✅ NEW: Auto-save reminder immediately when checkbox is clicked
+async function autoSaveReminder(checkbox) {
+  const plantId = window.currentUpdatePlantId;
+  const statusBox = document.getElementById('reminderStatusBox');
+  const label = document.getElementById('reminderLabel');
+
+  if (!plantId) return;
+
+  let currentUser;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser')); }
+  catch(e) { currentUser = null; }
+  if (!currentUser) return;
+
+  // Show loading state
+  statusBox.style.display = 'block';
+  statusBox.className = 'reminder-status-box loading';
+  statusBox.textContent = checkbox.checked ? '⏳ Setting reminder...' : '⏳ Removing reminder...';
+  label.style.borderColor = '#bdbdbd';
+  checkbox.disabled = true;
+
+  try {
+    const res = await fetch(`/api/garden/reminder/${plantId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reminder_enabled: checkbox.checked, user_id: currentUser.id })
+    });
+    const result = await res.json();
+
+    if (checkbox.checked && result.success) {
+      statusBox.className = 'reminder-status-box success';
+      statusBox.innerHTML = `✅ Reminder saved! Watering every <strong>${result.interval_days}</strong> day(s) 💧<br>
+        <span style="font-weight:400;font-size:0.8rem;">🌡️ ${result.weather?.temp}°C &nbsp;|&nbsp; 💦 ${result.weather?.humidity}% humidity &nbsp;|&nbsp; ☁️ ${result.weather?.description}</span>`;
+      label.style.borderColor = '#66bb6a';
+    } else if (!checkbox.checked) {
+      statusBox.className = 'reminder-status-box disabled';
+      statusBox.textContent = '🔕 Watering reminder disabled';
+      label.style.borderColor = '#e0e0e0';
+    } else {
+      statusBox.className = 'reminder-status-box error';
+      statusBox.textContent = '⚠️ ' + (result.message || 'Could not set reminder');
+      label.style.borderColor = '#ef9a9a';
+      checkbox.checked = false;
+    }
+  } catch (err) {
+    statusBox.className = 'reminder-status-box error';
+    statusBox.textContent = '⚠️ Error: ' + err.message;
+    label.style.borderColor = '#ef9a9a';
+    checkbox.checked = false;
+  } finally {
+    checkbox.disabled = false;
+  }
+}
+
+function sendMessage() {
+  const input = document.getElementById('aiInput');
+  const message = input.value.trim();
+  if (!message) return;
+  const messagesDiv = document.getElementById('aiMessages');
+  messagesDiv.innerHTML += '<div class="ai-message user">' + escapeHtml(message) + '</div>';
+  input.value = '';
+  const loadingId = 'loading-' + Date.now();
+  messagesDiv.innerHTML += '<div class="ai-message bot" id="' + loadingId + '">🌿 Thinking...</div>';
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  fetch('/api/chatbot/ask', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, isFirstMessage })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const el = document.getElementById(loadingId);
+    if (el) {
+      el.innerHTML = data.success
+        ? escapeHtml(data.message).replace(/\*\*/g,'').replace(/\*/g,'').replace(/\n/g,'<br>')
+        : '❌ ' + (data.error || 'Failed.');
+      if (isFirstMessage) isFirstMessage = false;
+    }
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  })
+  .catch(() => { const el = document.getElementById(loadingId); if (el) el.textContent = '❌ Connection error.'; });
+}
+
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
+
+function removePlantFromGarden(event, plantId) {
+  event.stopPropagation();
+  let currentUser;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser')); } catch(e) { currentUser = null; }
+  if (!currentUser) { alert('Please login first'); return; }
+  if (confirm('Are you sure you want to remove this plant from your garden?')) {
+    fetch(`/api/garden/garden/${plantId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) { alert('Plant removed!'); renderPlants(); }
+      else alert('Error: ' + result.message);
+    })
+    .catch(error => alert('Error: ' + error.message));
+  }
+}
+
+async function updatePlantDetails(event, plantId) {
+  event.stopPropagation();
+  let currentUser;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser')); } catch(e) { currentUser = null; }
+  if (!currentUser) { alert('Please login first'); return; }
+
+  try {
+    // Fetch plant data and reminder status in parallel
+    const [plantRes, reminderRes] = await Promise.all([
+      fetch(`/api/garden/garden/${plantId}`).then(r => r.json()),
+      fetch(`/api/garden/reminder/${plantId}`).then(r => r.json()).catch(() => ({ success: false }))
+    ]);
+
+    if (!plantRes.success) { alert('Error: ' + plantRes.message); return; }
+
+    const plant = plantRes.data;
+    document.getElementById('updateScientificName').value = plant.scientific_name || 'N/A';
+    document.getElementById('updatePreferredName').value = plant.preferred_name || plant.plant_name || '';
+    document.getElementById('updateSoilType').value = plant.soil_type || 'Not specified';
+    document.getElementById('updateAge').value = plant.age || '';
+
+    // Check reminder status from backend and pre-fill checkbox
+    const checkbox = document.getElementById('updateReminder');
+    const statusBox = document.getElementById('reminderStatusBox');
+    const label = document.getElementById('reminderLabel');
+    const reminderActive = reminderRes.success && reminderRes.reminder_enabled === true;
+
+    if (reminderActive) {
+      checkbox.checked = true;
+      label.style.borderColor = '#66bb6a';
+      statusBox.style.display = 'block';
+      statusBox.className = 'reminder-status-box success';
+      statusBox.innerHTML = `✅ Reminder active! Watering every <strong>${reminderRes.interval_days || '?'}</strong> day(s) 💧<br>
+        <span style="font-weight:400;font-size:0.8rem;">📅 Synced with Google Calendar</span>`;
+    } else {
+      checkbox.checked = false;
+      label.style.borderColor = '#e0e0e0';
+      statusBox.style.display = 'none';
+      statusBox.className = 'reminder-status-box';
+      statusBox.textContent = '';
+    }
+
+    document.getElementById('updateModalOverlay').classList.add('active');
+    window.currentUpdatePlantId = plantId;
+
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+function handleUpdateSchedule(event) {
+  event.preventDefault();
+  let currentUser;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser')); }
+  catch(e) { currentUser = null; }
+  if (!currentUser) { alert('Please login first'); return; }
+  const plantId = window.currentUpdatePlantId;
+  if (!plantId) { alert('Error: Plant ID not found'); return; }
+  const preferredName = document.getElementById('updatePreferredName').value.trim();
+  const age = document.getElementById('updateAge').value.trim();
+  if (!preferredName) { alert('Please enter a preferred display name'); return; }
+  const submitBtn = event.target.querySelector('.btn-submit');
+  submitBtn.textContent = '💾 Saving...';
+  submitBtn.disabled = true;
+  const updateData = { preferred_name: preferredName };
+  if (age) updateData.age = age;
+  fetch(`/api/garden/garden/${plantId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updateData)
+  })
+  .then(r => r.json())
+  .then(result => {
+    submitBtn.textContent = 'Save Plant Details';
+    submitBtn.disabled = false;
+    if (!result.success) { alert('Error saving plant: ' + result.message); return; }
+    renderPlants();
+    closeUpdateModal();
+    setTimeout(() => alert('✅ Plant details updated!'), 300);
+  })
+  .catch(err => {
+    submitBtn.textContent = 'Save Plant Details';
+    submitBtn.disabled = false;
+    alert('Error: ' + err.message);
+  });
+}
+</script>
+
+<script src="shared-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function loadProfileImageInNavbar() {
+  const profileContainer = document.getElementById('navbarProfile');
+  if (!profileContainer) return;
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) { profileContainer.innerHTML = '<a href="registration.html" class="nav-link">Login</a>'; return; }
+    const profileImageUrl = localStorage.getItem('profileImageUrl');
+    const userName  = currentUser.name  || 'User';
+    const userEmail = currentUser.email || '';
+    const userPhone = currentUser.phone || 'Not provided';
+    const userCity  = currentUser.city  || 'Not specified';
+    const userState = currentUser.state || '';
+    const initials  = userName.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+    const makeAvatar = (sz) => profileImageUrl
+      ? `<img src="${profileImageUrl}" alt="${userName}">`
+      : `<div style="background:linear-gradient(135deg,#66bb6a,#2e7d32);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${sz==='sm'?'0.9':'1.2'}rem;width:100%;height:100%;">${initials}</div>`;
+    profileContainer.innerHTML = `
+      <div class="profile-image-navbar" onclick="toggleProfileDropdown(event)">${makeAvatar('sm')}</div>
+      <span class="nav-link" style="margin-left:0;cursor:pointer;" onclick="toggleProfileDropdown(event)">${userName}</span>
+      <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
+        <div class="profile-dropdown-header">
+          <div class="profile-dropdown-avatar">${makeAvatar('lg')}</div>
+          <div>
+            <div class="profile-dropdown-name">${userName}</div>
+            <div class="profile-dropdown-email">${userEmail}</div>
+          </div>
+        </div>
+        <div class="profile-dropdown-body">
+          <div class="profile-detail-row"><span class="profile-detail-label">📞 Phone</span><span class="profile-detail-value">${userPhone}</span></div>
+          <div class="profile-detail-row"><span class="profile-detail-label">📍 Location</span><span class="profile-detail-value">${userCity}${userState ? ', '+userState : ''}</span></div>
+          <div class="profile-detail-row"><span class="profile-detail-label">✅ Status</span><span class="profile-detail-value" style="color:#4caf50;font-weight:600;">Verified</span></div>
+        </div>
+        <div class="profile-dropdown-footer">
+          <a href="profile.html?edit=1" class="profile-btn-edit">✏️ Edit Profile</a>
+          <a href="#" class="profile-btn-logout" onclick="logoutUser(event)">Logout</a>
+        </div>
+      </div>`;
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('profileDropdown');
+      if (dd && !profileContainer.contains(e.target)) dd.classList.remove('active');
+    });
+  } catch (error) { profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Profile</a>'; }
+}
+
+function toggleProfileDropdown(event) {
+  event.stopPropagation();
+  document.getElementById('profileDropdown')?.classList.toggle('active');
+}
+
+function logoutUser(event) {
+  event.preventDefault();
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('profileImageUrl');
+    window.location.href = 'index.html';
+  }
+}
+
+loadProfileImageInNavbar();
+renderPlants();
+</script>
+
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="/cdn-cgi/l/email-protection#d4b3a6b1b1baa7a4bcb1a6b1e4e594b3b9b5bdb8fab7bbb9"><span class="__cf_email__" data-cfemail="680f1a0d0d061b18000d1a0d5859280f05090104460b0705">[email&#160;protected]</span></a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center"><span class="footer-logo">🌿 GreenSphere</span></div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+</footer>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</body>
+</html>

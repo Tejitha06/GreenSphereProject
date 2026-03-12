@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Tracking | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: rgba(255,255,255,0.95) !important;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 0.8rem 0;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #2e7d32 !important;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .navbar-brand::before {
+      content: "🌿";
+      font-size: 1.5rem;
+    }
+
+    .nav-link {
+      color: #555 !important;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.3s;
+      margin: 0 6px;
+    }
+
+    .nav-link:hover {
+      color: #2e7d32 !important;
+    }
+
+    .page-header {
+      text-align: center;
+      margin: 2rem 0 1.5rem;
+      animation: fadeInDown 0.6s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header h2 {
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-header p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .info-card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(46, 125, 50, 0.12);
+      animation: fadeInUp 0.5s ease-out;
+      animation-fill-mode: both;
+      border: 1px solid rgba(46, 125, 50, 0.08);
+      transition: all 0.3s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(46, 125, 50, 0.18);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header-custom {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #E8F5E9;
+    }
+
+    .card-header-custom h5 {
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: #666;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .info-value {
+      color: #333;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-align: right;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-success {
+      background: #E8F5E9;
+      color: #2e7d32;
+    }
+
+    .status-cancelled {
+      background: #FFEBEE;
+      color: #c62828;
+    }
+
+    .tracking-container {
+      position: relative;
+      padding: 10px 0;
+    }
+
+    .tracking-step {
+      position: relative;
+      padding-left: 50px;
+      padding-bottom: 20px;
+    }
+
+    .tracking-step:last-child {
+      padding-bottom: 0;
+    }
+
+    .tracking-step::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 30px;
+      width: 2px;
+      height: calc(100% - 10px);
+      background: #E0E0E0;
+    }
+
+    .tracking-step:last-child::before {
+      display: none;
+    }
+
+    .step-icon {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 32px;
+      height: 32px;
+      background: #E0E0E0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: #999;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+
+    .tracking-step.active .step-icon {
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+      transform: scale(1.1);
+    }
+
+    .tracking-step.completed .step-icon {
+      background: #2e7d32;
+      color: white;
+    }
+
+    .tracking-step.cancelled-step .step-icon {
+      background: #ef5350;
+      color: white;
+    }
+
+    .step-content h6 {
+      color: #333;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      color: #666;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    .plant-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 12px;
+      background: #F9F9F9;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .plant-item-icon {
+      width: 50px;
+      height: 50px;
+      background: #E8F5E9;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .plant-item-info {
+      flex: 1;
+    }
+
+    .plant-item-info h6 {
+      color: #2e7d32;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .plant-item-info p {
+      color: #666;
+      font-size: 0.8rem;
+      margin: 0;
+    }
+
+    .plant-item-price {
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 15px;
+    }
+
+    .btn-action {
+      flex: 1;
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+      border: none;
+      padding: 12px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+    }
+
+    .btn-secondary-style {
+      background: linear-gradient(135deg, #78909c, #546e7a);
+    }
+
+    .btn-danger-style {
+      background: linear-gradient(135deg, #ef5350, #c62828);
+      box-shadow: 0 4px 12px rgba(198, 40, 40, 0.2);
+    }
+
+    .btn-danger-style:hover {
+      box-shadow: 0 6px 20px rgba(198, 40, 40, 0.35);
+    }
+
+    /* ─── Cancel Modal ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 24px;
+      padding: 36px 32px 28px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+      animation: popIn 0.25s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .modal-box h4 {
+      color: #c62828;
+      font-weight: 700;
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+    }
+
+    .modal-box p {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 13px 10px;
+      border: none;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn-cancel {
+      background: #f5f5f5;
+      color: #555;
+    }
+
+    .modal-btn-cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .modal-btn-confirm {
+      background: linear-gradient(135deg, #ef5350, #c62828);
+      color: white;
+      box-shadow: 0 4px 12px rgba(198,40,40,0.25);
+    }
+
+    .modal-btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(198,40,40,0.4);
+    }
+
+    /* ─── Success / Cancelled Modal ─── */
+    .modal-box.success-modal h4 {
+      color: #2e7d32;
+    }
+
+    .modal-btn-ok {
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+      box-shadow: 0 4px 12px rgba(46,125,50,0.25);
+      width: 100%;
+    }
+
+    .modal-btn-ok:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46,125,50,0.4);
+    }
+
+    /* ─── Cancelled state styles ─── */
+    .order-cancelled-banner {
+      display: none;
+      background: linear-gradient(135deg, #ffebee, #fff);
+      border: 2px solid #ef9a9a;
+      border-radius: 16px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      text-align: center;
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .order-cancelled-banner h5 {
+      color: #c62828;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .order-cancelled-banner p {
+      color: #e57373;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    @media (max-width: 991px) {
+      .info-card { height: auto; }
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #ffffff, #f0fff0);
+      color: #4caf50;
+      padding: 40px 50px 25px;
+      margin: 40px 40px 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(46, 125, 50, 0.15), 0 8px 25px rgba(0,0,0,0.08);
+      border: 1px solid rgba(46, 125, 50, 0.1);
+    }
+
+    .footer-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding-bottom: 30px;
+    }
+
+    .footer-col-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-col-left a { color: #4caf50; text-decoration: underline; font-size: 14px; transition: color 0.3s; }
+    .footer-col-left a:hover { color: #2e7d32; }
+    .footer-col-center { text-align: center; }
+    .footer-logo { font-size: 28px; font-weight: 700; color: #2e7d32; letter-spacing: 2px; }
+    .footer-col-right { display: flex; justify-content: flex-end; }
+
+    .social-section { display: flex; gap: 18px; }
+    .social-icon {
+      width: 36px; height: 36px; border-radius: 50%; background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      color: #4caf50; text-decoration: none; font-size: 16px;
+      transition: all 0.3s ease; border: 1px solid rgba(46,125,50,0.3);
+    }
+    .social-icon:hover { background: #2e7d32; color: white; border-color: #2e7d32; transform: translateY(-3px); }
+
+    .footer-divider { border-color: rgba(46,125,50,0.1); margin: 0 0 20px 0; }
+    .footer-bottom { text-align: center; font-size: 12px; color: #81c784; display: flex; flex-direction: column; gap: 8px; }
+    .footer-bottom p { margin: 0; }
+    .footer-bottom-links { display: flex; justify-content: center; gap: 20px; }
+    .footer-bottom-links a { color: #81c784; text-decoration: underline; font-size: 13px; transition: color 0.3s; }
+    .footer-bottom-links a:hover { color: #4caf50; }
+
+    @media (max-width: 768px) {
+      .footer-top-row { grid-template-columns: 1fr; text-align: center; gap: 25px; }
+      .footer-col-right { justify-content: center; }
+      .footer-bottom-links { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ─────────── NAVBAR ─────────── -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">GreenSphere</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="identify.html">Identify</a></li>
+        <li class="nav-item"><a class="nav-link" href="disease.html">Disease</a></li>
+        <li class="nav-item"><a class="nav-link" href="nursery.html">Nurseries</a></li>
+        <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ─────────── MAIN ─────────── -->
+<div class="container" style="padding-bottom: 60px;">
+  <div class="page-header">
+    <h2>📦 Nursery Order Tracking</h2>
+    <p>Track your plant order and delivery progress</p>
+  </div>
+
+  <!-- Cancelled banner (hidden by default) -->
+  <div class="order-cancelled-banner" id="cancelledBanner">
+    <h5>❌ Order Cancelled</h5>
+    <p>Your order has been successfully cancelled. Refund will be processed within 3–5 business days.</p>
+  </div>
+
+  <div class="row row-cols-1 row-cols-lg-2 g-4">
+
+    <!-- Order Status -->
+    <div class="col">
+      <div class="info-card">
+        <div class="card-header-custom">
+          <span style="font-size:1.5rem;">📍</span>
+          <h5>Order Status</h5>
+        </div>
+        <div class="tracking-container" id="trackingSteps">
+          <div class="tracking-step completed">
+            <div class="step-icon">✓</div>
+            <div class="step-content">
+              <h6>Order Placed</h6>
+              <p id="orderPlacedTime">Loading...</p>
+            </div>
+          </div>
+          <div class="tracking-step completed">
+            <div class="step-icon">✓</div>
+            <div class="step-content">
+              <h6>Payment Confirmed</h6>
+              <p id="paymentConfirmedTime">Confirmed</p>
+            </div>
+          </div>
+          <div class="tracking-step active" id="deliveryStep">
+            <div class="step-icon">🚚</div>
+            <div class="step-content">
+              <h6>Out for Delivery</h6>
+              <p>Expected by 6:00 PM today</p>
+            </div>
+          </div>
+          <div class="tracking-step">
+            <div class="step-icon">📦</div>
+            <div class="step-content">
+              <h6>Delivered</h6>
+              <p>Delivery pending</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booked Plants -->
+    <div class="col">
+      <div class="info-card">
+        <div class="card-header-custom">
+          <span style="font-size:1.5rem;">🌱</span>
+          <h5>Booked Plants</h5>
+        </div>
+        <div id="plantsList" style="flex-grow:1;">
+          <p class="text-center text-muted">Loading plants...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Details -->
+    <div class="col">
+      <div class="info-card">
+        <div class="card-header-custom">
+          <span style="font-size:1.5rem;">💳</span>
+          <h5>Payment Details</h5>
+        </div>
+        <div style="flex-grow:1;">
+          <div class="info-row">
+            <span class="info-label">Payment Method</span>
+            <span class="info-value" id="paymentMethod">UPI</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Payment Status</span>
+            <span class="info-value"><span class="status-badge status-success" id="paymentStatusBadge">Paid</span></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Transaction ID</span>
+            <span class="info-value" style="font-size:0.8rem;" id="transactionId">TXN-LOADING</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Amount Paid</span>
+            <span class="info-value" style="color:#2e7d32;font-size:1.1rem;" id="amountPaid">₹0</span>
+          </div>
+        </div>
+
+        <!-- Cancel Payment Button -->
+        <div style="margin-top: 18px;">
+          <button class="btn-action btn-danger-style" id="cancelPaymentBtn" onclick="showCancelModal()" style="width:100%;">
+            ❌ Cancel Order & Payment
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Details -->
+    <div class="col">
+      <div class="info-card">
+        <div class="card-header-custom">
+          <span style="font-size:1.5rem;">🏠</span>
+          <h5>Delivery Details</h5>
+        </div>
+        <div style="flex-grow:1; padding: 5px 0; color:#333; line-height:1.6;">
+          <strong id="customerName">Rajesh Kumar</strong><br>
+          <span id="address1">Plot No. 45, Greenview Apartments</span><br>
+          <span id="deliveryArea">Gachibowli</span>, <span id="deliveryCity">Hyderabad</span><br>
+          <span id="deliveryState">Telangana</span> - <span id="pincode">500032</span><br>
+          Phone: <span id="phoneNumber">+91 98765 43210</span>
+        </div>
+        <div class="info-row" style="margin-top:5px;">
+          <span class="info-label">Expected Delivery</span>
+          <span class="info-value" style="color:#2e7d32;">Today by 6:00 PM</span>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-action" id="liveTrackBtn" onclick="trackOrder()">📍 Live Track</button>
+          <button class="btn-action btn-secondary-style" onclick="downloadInvoice()">📄 Invoice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Go to My Garden -->
+  <div class="text-center mt-5">
+    <button class="btn-action" style="background:linear-gradient(135deg,#43a047,#2e7d32);width:auto;min-width:280px;"
+      onclick="window.location.href='my-garden.html'">
+      🌿 Go to My Garden
+    </button>
+  </div>
+</div>
+
+<!-- ─────────── CANCEL CONFIRM MODAL ─────────── -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal-box">
+    <span class="modal-icon">⚠️</span>
+    <h4>Cancel Order?</h4>
+    <p>Are you sure you want to cancel this order and payment?<br>
+       This action <strong>cannot be undone</strong> and a refund will be initiated.</p>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-cancel" onclick="closeCancelModal()">No, Keep It</button>
+      <button class="modal-btn modal-btn-confirm" onclick="confirmCancel()">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── CANCELLATION SUCCESS MODAL ─────────── -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box success-modal">
+    <span class="modal-icon">✅</span>
+    <h4>Order Cancelled Successfully</h4>
+    <p>Your order has been cancelled and your payment refund has been initiated.<br>
+       Refund will reflect within <strong>3–5 business days</strong>.</p>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-ok" onclick="closeSuccessModal()">OK, Got It</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── SCRIPTS ─────────── -->
+<script>
+  /* ── Page load ── */
+  window.addEventListener('DOMContentLoaded', function () {
+    const orderDataStr = sessionStorage.getItem('currentOrder');
+    if (orderDataStr) {
+      try { displayOrderData(JSON.parse(orderDataStr)); }
+      catch (e) { displayDefaultData(); }
+    } else {
+      displayDefaultData();
+    }
+  });
+
+  function displayOrderData(orderData) {
+    const orderDate = new Date(orderData.orderDate || Date.now());
+    const opts = { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' };
+    document.getElementById('orderPlacedTime').textContent = orderDate.toLocaleString('en-US', opts);
+    document.getElementById('transactionId').textContent = 'TXN' + orderDate.getTime().toString().slice(-10);
+    document.getElementById('amountPaid').textContent = `₹${orderData.totalAmount || 0}`;
+    if (orderData.paymentMethod) document.getElementById('paymentMethod').textContent = orderData.paymentMethod;
+
+    if (orderData.deliveryDetails) {
+      const d = orderData.deliveryDetails;
+      if (d.name)    document.getElementById('customerName').textContent  = d.name;
+      if (d.address) document.getElementById('address1').textContent      = d.address;
+      if (d.area)    document.getElementById('deliveryArea').textContent   = d.area;
+      if (d.city)    document.getElementById('deliveryCity').textContent   = d.city;
+      if (d.state)   document.getElementById('deliveryState').textContent  = d.state;
+      if (d.pincode) document.getElementById('pincode').textContent        = d.pincode;
+      if (d.phone)   document.getElementById('phoneNumber').textContent    = d.phone;
+    }
+
+    if (orderData.nursery && !orderData.deliveryDetails) {
+      if (orderData.nursery.area) document.getElementById('deliveryArea').textContent = orderData.nursery.area;
+      if (orderData.nursery.city) document.getElementById('deliveryCity').textContent = orderData.nursery.city;
+    }
+
+    displayPlantsList(orderData.cart);
+  }
+
+  function displayPlantsList(cart) {
+    const plantsList = document.getElementById('plantsList');
+    if (!cart || cart.length === 0) {
+      plantsList.innerHTML = '<p class="text-center text-muted">No plants in this order</p>';
+      return;
+    }
+    let html = '';
+    let totalItems = 0;
+    cart.forEach(item => {
+      totalItems += item.quantity;
+      html += `
+        <div class="plant-item">
+          <div class="plant-item-icon">🌿</div>
+          <div class="plant-item-info">
+            <h6>${item.name}</h6>
+            <p>Qty: ${item.quantity} × ₹${item.price}</p>
+          </div>
+          <div class="plant-item-price">₹${item.price * item.quantity}</div>
+        </div>`;
+    });
+    html += `
+      <div style="margin-top:15px;padding-top:15px;border-top:2px solid #E8F5E9;text-align:center;">
+        <span style="color:#2e7d32;font-weight:600;font-size:0.95rem;">
+          Total Plants: ${totalItems} item${totalItems !== 1 ? 's' : ''}
+        </span>
+      </div>`;
+    plantsList.innerHTML = html;
+  }
+
+  function displayDefaultData() {
+    document.getElementById('plantsList').innerHTML = '<p class="text-center text-muted">No order data available. Please place an order first.</p>';
+    document.getElementById('orderPlacedTime').textContent = 'No order data';
+    document.getElementById('transactionId').textContent   = 'N/A';
+    document.getElementById('amountPaid').textContent      = '₹0';
+  }
+
+  /* ── Cancel flow ── */
+  function showCancelModal() {
+    document.getElementById('cancelModal').classList.add('show');
+  }
+
+  function closeCancelModal() {
+    document.getElementById('cancelModal').classList.remove('show');
+  }
+
+  function confirmCancel() {
+    closeCancelModal();
+
+    // Show success modal
+    document.getElementById('successModal').classList.add('show');
+
+    // Update UI to reflect cancellation
+    applyCancelledState();
+  }
+
+  function closeSuccessModal() {
+    document.getElementById('successModal').classList.remove('show');
+  }
+
+  function applyCancelledState() {
+    // Show banner
+    document.getElementById('cancelledBanner').style.display = 'block';
+
+    // Payment badge → Refunded
+    const badge = document.getElementById('paymentStatusBadge');
+    badge.textContent = 'Refund Initiated';
+    badge.className = 'status-badge status-cancelled';
+
+    // Hide cancel button
+    document.getElementById('cancelPaymentBtn').style.display = 'none';
+
+    // Hide live track button
+    document.getElementById('liveTrackBtn').style.display = 'none';
+
+    // Update tracking steps — add cancelled step
+    const deliveryStep = document.getElementById('deliveryStep');
+    deliveryStep.className = 'tracking-step cancelled-step';
+    deliveryStep.querySelector('.step-icon').textContent = '✕';
+    deliveryStep.querySelector('h6').textContent = 'Order Cancelled';
+    deliveryStep.querySelector('p').textContent  = 'Your order has been cancelled.';
+
+    // Update sessionStorage
+    try {
+      const data = JSON.parse(sessionStorage.getItem('currentOrder') || '{}');
+      data.status = 'cancelled';
+      sessionStorage.setItem('currentOrder', JSON.stringify(data));
+    } catch (_) {}
+  }
+
+  /* ── Other actions ── */
+  function trackOrder() {
+    alert('Opening live tracking...\nDriver is currently 15 mins away.');
+  }
+
+  function downloadInvoice() {
+    const orderDataStr = sessionStorage.getItem('currentOrder');
+    if (orderDataStr) {
+      const od = JSON.parse(orderDataStr);
+      alert(`Downloading invoice for Order #${od.orderId || 'N/A'}\nAmount: ₹${od.totalAmount || 0}`);
+    } else {
+      alert('No order data available to generate invoice.');
+    }
+  }
+
+  /* ── Close modals on overlay click ── */
+  document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+  });
+  document.getElementById('successModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSuccessModal();
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center">
+        <span class="footer-logo">🌿 GreenSphere</span>
+      </div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#facebook"  class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#twitter"   class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#linkedin"  class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</body>
+</html>

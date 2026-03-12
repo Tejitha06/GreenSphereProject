@@ -1,0 +1,52 @@
+# Requirements for Plant Analysis Feature
+
+Add these to your requirements.txt (if not already present):
+
+```
+# Computer Vision & Image Analysis
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Scientific Computing
+scipy>=1.10.0
+
+# Existing Flask requirements (should already be there)
+Flask>=2.3.0
+Flask-SQLAlchemy>=3.0.0
+python-dotenv>=1.0.0
+```
+
+## Installation Commands
+
+```bash
+# Install/Update specific packages
+pip install opencv-python numpy scipy
+
+# Or install all at once
+pip install -r requirements.txt
+```
+
+## Verify Installation
+
+```bash
+python -c "import cv2; import numpy; print(f'OpenCV {cv2.__version__}')"
+# Output: OpenCV 4.8.x.x
+```
+
+## Optional: GPU Acceleration (CUDA)
+
+If you want to speed up image processing:
+
+```bash
+# For NVIDIA GPU support
+pip install opencv-contrib-python  # More modules
+# And install CUDA toolkit separately
+```
+
+## Notes
+
+- **opencv-python**: Required for image analysis, edge detection, color analysis
+- **numpy**: Required for numerical operations, array manipulation
+- **scipy**: Optional for advanced image processing (currently not used but good to have)
+
+All other dependencies should already be in your project's requirements.txt.

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GreenSphere</title>
+
+    <style>
+        /* Inheriting your exact styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; height: 100vh; background-color: #1a2433; overflow: hidden; }
+        .main-wrapper { display: flex; width: 100%; height: 100vh; }
+        .left-side { flex: 1.2; position: relative; overflow: hidden; }
+        .left-side video { width: 100%; height: 100%; object-fit: cover; }
+        .right-side { flex: 0.8; background:#1a2433; display: flex; justify-content: center; align-items: center; padding: 40px; }
+
+        .login-box {
+            background: rgba(90, 143, 106, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .login-box h2 { color: #4CAF50; text-align: left; margin-bottom: 5px; font-size: 28px; }
+        .subtitle { color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-bottom: 25px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            outline: none;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 14px;
+            background: #28ca56;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .action-btn:hover { background: #22b34a; }
+
+        .secondary-link { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); }
+        .secondary-link a { color: #4CAF50; text-decoration: none; font-weight: bold; }
+
+        .error-msg { color: #ff4444; font-size: 12px; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="left-side">
+        <video autoplay muted loop>
+            <source src="tulips.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="right-side">
+        <div class="login-box">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Enter your details to access your garden.</p>
+
+            <form id="loginForm" onsubmit="return false;">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                    <p id="errorMsg" class="error-msg"></p>
+                </div>
+
+                <button type="submit" class="action-btn" id="mainBtn" onclick="handleLogin(event)">
+                   Login
+                </button>
+            </form>
+
+            <div class="secondary-link">
+                <p>Don't have an account? <a href="registration.html">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="shared-data.js"></script>
+<script>
+    // Hardcoded user profiles with complete details
+    const credentials = [
+        { 
+            email: "jhansi@gmail.com", 
+            password: "236P1A05D5",
+            name: "Jhansi Kumari",
+            phone: "9876543210",
+            city: "Bangalore",
+            state: "Karnataka",
+            address: "123 Garden Lane"
+        },
+        { 
+            email: "kareena@gmail.com", 
+            password: "236P1A0598",
+            name: "Kareena Singh",
+            phone: "9876543211",
+            city: "Mumbai",
+            state: "Maharashtra",
+            address: "456 Green Street"
+        },
+        { 
+            email: "keerthana@gmail.com", 
+            password: "236P1A05E7",
+            name: "Keerthana Reddy",
+            phone: "9876543212",
+            city: "Hyderabad",
+            state: "Telangana",
+            address: "789 Plant Avenue"
+        },
+        { 
+            email: "tejaswini@gmail.com", 
+            password: "236P1A0599",
+            name: "Tejaswini Verma",
+            phone: "9876543213",
+            city: "Delhi",
+            state: "Delhi",
+            address: "321 Blossom Road"
+        },
+        { 
+            email: "tejitha@gmail.com", 
+            password: "236P1A0582",
+            name: "Tejitha Nair",
+            phone: "9876543214",
+            city: "Kochi",
+            state: "Kerala",
+            address: "654 Flower Path"
+        }
+    ];
+
+    function handleLogin(event) {
+        event.preventDefault();
+        
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("password").value.trim();
+        const errorMsg = document.getElementById("errorMsg");
+        const btn = document.getElementById("mainBtn");
+
+        if (!email || !password) {
+            errorMsg.textContent = "Please enter both email and password";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        // Disable button to prevent double submission
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+
+        // Send login request to backend
+        fetch('http://localhost:5000/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Login response:', data);
+            
+            if (data.success) {
+                console.log('Login successful:', data.user);
+                
+                // Store user token and info
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
+                
+                // Also register in the shared-data system for compatibility
+                const userProfiles = getUserProfiles();
+                if (!userProfiles[email]) {
+                    registerUser({
+                        name: data.user.name,
+                        email: data.user.email,
+                        phone: data.user.phone,
+                        id: data.user.id,
+                        contact: data.user.email
+                    });
+                }
+                
+                // Update current user in shared-data
+                currentUser = data.user;
+                
+                alert("Login successful! Redirecting...");
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 500);
+            } else {
+                console.error('Login failed:', data.message);
+                errorMsg.textContent = data.message || 'Invalid email or password';
+                errorMsg.style.display = "block";
+                btn.disabled = false;
+                btn.textContent = 'Login';
+                document.getElementById("password").value = "";
+            }
+        })
+        .catch(error => {
+            console.error('Error during login:', error);
+            errorMsg.textContent = 'Error connecting to server. Please check if backend is running.';
+            errorMsg.style.display = "block";
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        });
+    }
+</script>
+</body>
+</html>

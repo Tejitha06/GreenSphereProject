@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #EDF9EB 0%, #D4F1D4 100%);
+      font-family: "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: #2e7d32 !important;
+      font-size: 24px;
+    }
+
+    .dashboard-header {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      padding: 20px 0;
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-title {
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .dashboard-subtitle {
+      font-size: 14px;
+      opacity: 0.95;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border-radius: 25px;
+      padding: 0;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      overflow: hidden;
+      border: 3px solid transparent;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 450px;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(46, 125, 50, 0.3);
+      border-color: #2e7d32;
+    }
+
+    .feature-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 22px 22px 0 0;
+      flex-shrink: 0;
+    }
+
+    .feature-content {
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex-grow: 1;
+    }
+
+    .feature-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .feature-title {
+      font-weight: 600;
+      color: #1b5e20;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .profile-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(46, 125, 50, 0.3);
+    }
+
+    .profile-icon:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(46, 125, 50, 0.5);
+    }
+
+    .navbar-profile {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-left: 20px;
+      padding-left: 20px;
+      border-left: 1px solid #e0e0e0;
+    }
+    
+    .profile-image-navbar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #2e7d32;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .profile-image-navbar:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+    }
+    
+    .profile-image-navbar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    @media (max-width: 768px) {
+      .navbar-profile {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: 10px;
+      }
+    }
+
+    .profile-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .profile-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .profile-sidebar {
+      position: fixed;
+      top: 0;
+      right: -450px;
+      width: 450px;
+      height: 100%;
+      background: white;
+      box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+
+    .profile-sidebar.active {
+      right: 0;
+    }
+
+    .sidebar-header {
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      padding: 15px 20px;
+      color: white;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+
+    .sidebar-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin: 0 auto 8px;
+      font-weight: bold;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar-name {
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 3px;
+    }
+
+    .sidebar-email {
+      font-size: 12px;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    .sidebar-content {
+      padding: 30px 25px;
+    }
+
+    .info-section {
+      margin-bottom: 25px;
+    }
+
+    .info-section-title {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .info-card {
+      background: #f8f9fa;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border-left: 4px solid #4CAF50;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .view-orders-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+    }
+
+    .view-orders-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(45, 126, 49, 0.3);
+    }
+
+    .logout-btn {
+      width: 100%;
+      padding: 14px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      color: #666;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .logout-btn:hover {
+      border-color: #ff4444;
+      color: #ff4444;
+    }
+
+    @media (max-width: 768px) {
+      .profile-sidebar {
+        width: 100%;
+        right: -100%;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #ffffff, #f0fff0);
+      color: #4caf50;
+      padding: 40px 50px 25px;
+      margin: 40px 40px 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(46, 125, 50, 0.15),
+                  0 8px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(46, 125, 50, 0.1);
+      position: relative;
+    }
+
+    .footer-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding-bottom: 30px;
+    }
+
+    .footer-col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-col-left a {
+      color: #4caf50;
+      text-decoration: underline;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .footer-col-left a:hover {
+      color: #2e7d32;
+    }
+
+    .footer-col-center {
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2e7d32;
+      letter-spacing: 2px;
+    }
+
+    .footer-col-right {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .social-section {
+      display: flex;
+      gap: 18px;
+    }
+
+    .social-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4caf50;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(46, 125, 50, 0.3);
+    }
+
+    .social-icon:hover {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+      transform: translateY(-3px);
+    }
+
+    .footer-divider {
+      border-color: rgba(46, 125, 50, 0.1);
+      margin: 0 0 20px 0;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      font-size: 12px;
+      color: #81c784;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-bottom p {
+      margin: 0;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .footer-bottom-links a {
+      color: #81c784;
+      text-decoration: underline;
+      font-size: 13px;
+      transition: color 0.3s;
+    }
+
+    .footer-bottom-links a:hover {
+      color: #4caf50;
+    }
+
+    @media (max-width: 768px) {
+      .footer-top-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 25px;
+      }
+
+      .footer-col-right {
+        justify-content: center;
+      }
+
+      .footer-bottom-links {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+    
+    .profile-dropdown {
+      position: absolute;
+      top: 65px;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.2);
+      min-width: 300px;
+      display: none;
+      z-index: 1000;
+      border: 1px solid #e0e0e0;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .profile-dropdown.active {
+      display: block;
+    }
+    
+    .profile-dropdown-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+      border-radius: 11px 11px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .profile-dropdown-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid white;
+      flex-shrink: 0;
+    }
+    
+    .profile-dropdown-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .profile-dropdown-info {
+      flex: 1;
+    }
+    
+    .profile-dropdown-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .profile-dropdown-email {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+    
+    .profile-dropdown-body {
+      padding: 15px 20px;
+    }
+    
+    .profile-detail-row {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .profile-detail-row:last-child {
+      border-bottom: none;
+    }
+    
+    .profile-detail-label {
+      font-weight: 600;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .profile-detail-value {
+      color: #333;
+      font-size: 0.9rem;
+      text-align: right;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .profile-dropdown-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .profile-dropdown-footer a {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    
+    .profile-btn-view {
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+    }
+    
+    .profile-btn-view:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+      text-decoration: none;
+      color: white;
+    }
+    
+    .profile-btn-logout {
+      background: #f5f5f5;
+      color: #f44336;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .profile-btn-logout:hover {
+      background: #ffebee;
+      text-decoration: none;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🌿 GreenSphere</a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item"><a class="nav-link active" href="dashboard.html">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="identify.html">Identify</a></li>
+      <li class="nav-item"><a class="nav-link" href="disease.html">Disease</a></li>
+      <li class="nav-item"><a class="nav-link" href="nursery.html">Nurseries</a></li>
+      <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+
+    </ul>
+    <div class="navbar-profile" id="navbarProfile"></div>
+  </div>
+</nav>
+
+<!-- DASHBOARD HEADER -->
+<div class="dashboard-header">
+  <div class="container text-center">
+    <h2 class="dashboard-title">Welcome to GreenSphere, <span id="welcomeName">User</span>! </h2>
+    <p class="dashboard-subtitle">
+      Your smart assistant for plant care, health, and gardening excellence
+    </p>
+  </div>
+</div>
+
+<!-- DASHBOARD CONTENT -->
+<div class="container mb-5">
+
+  <div class="row g-4">
+
+    <!-- Identify Plant -->
+    <div class="col-md-3">
+      <div class="feature-card"
+        onclick="window.location.href='identify.html'">
+        <img src="identify plants.jpg" 
+             alt="Identify Plant" class="feature-image">
+        <div class="feature-content">
+          <div class="feature-icon">🍀</div>
+          <div class="feature-title">Identify Plant</div>
+          <div class="feature-desc">
+            Upload a photo and get complete plant details instantly
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disease Detection -->
+    <div class="col-md-3">
+      <div class="feature-card"
+        onclick="window.location.href='disease.html'">
+        <img src="disease.jpg" 
+             alt="Disease Detection" class="feature-image">
+        <div class="feature-content">
+          <div class="feature-icon">🩺</div>
+          <div class="feature-title">Disease Detection</div>
+          <div class="feature-desc">
+            Detect diseases and get expert treatment guidance
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nurseries -->
+    <div class="col-md-3">
+      <div class="feature-card"
+        onclick="window.location.href='nursery.html'">
+        <img src="nursery.png" 
+             alt="Nurseries" class="feature-image">
+        <div class="feature-content">
+          <div class="feature-icon">🛒</div>
+          <div class="feature-title">Nurseries</div>
+          <div class="feature-desc">
+            Find nearby nurseries and order plants with ease
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Garden -->
+    <div class="col-md-3">
+      <div class="feature-card"
+        onclick="window.location.href='my-garden.html'">
+        <img src="my gardern.jpeg" 
+             alt="My Garden" class="feature-image">
+        <div class="feature-content">
+          <div class="feature-icon">🌷</div>
+          <div class="feature-title">My Garden</div>
+          <div class="feature-desc">
+            Track plant growth and manage care schedules
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- PROFILE SIDEBAR -->
+<div class="profile-overlay" id="profileOverlay" onclick="closeProfileSidebar()"></div>
+
+<div class="profile-sidebar" id="profileSidebar">
+  <div class="sidebar-header">
+    <button class="close-btn" onclick="closeProfileSidebar()">×</button>
+    <div class="sidebar-avatar" id="sidebarAvatar">U</div>
+    <div class="sidebar-name" id="sidebarName">User Name</div>
+    <div class="sidebar-email" id="sidebarEmail">user@email.com</div>
+  </div>
+
+  <div class="sidebar-content">
+    <!-- View Mode -->
+    <div id="profileViewMode">
+      <div class="info-section">
+        <div class="info-section-title">Personal Information</div>
+        
+        <div class="info-card">
+          <div class="info-label">Phone Number</div>
+          <div class="info-value" id="sidebarPhone">Not provided</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">Address</div>
+          <div class="info-value" id="sidebarAddress">Not provided</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">City</div>
+          <div class="info-value" id="sidebarCity">Not provided</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">State</div>
+          <div class="info-value" id="sidebarState">Not provided</div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-section-title">Account Details</div>
+        
+        <div class="info-card">
+          <div class="info-label">Member Since</div>
+          <div class="info-value" id="sidebarJoined">Today</div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-section-title">Your Orders</div>
+        
+        <div class="info-card">
+          <div class="info-label">Total Orders</div>
+          <div class="info-value" id="sidebarOrderCount">0</div>
+        </div>
+
+        <button class="view-orders-btn" onclick="viewOrders()">
+          📦 View Orders
+        </button>
+      </div>
+
+      <button class="edit-profile-btn" onclick="toggleEditMode()" style="background: #2e7d32; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: 600;">
+        ✏️ Edit Profile
+      </button>
+    </div>
+
+    <!-- Edit Mode -->
+    <div id="profileEditMode" style="display: none;">
+      <div class="info-section">
+        <div class="info-section-title">Edit Personal Information</div>
+        
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 12px; color: #555; margin-bottom: 5px; font-weight: 600;">Phone Number</label>
+          <input type="tel" id="editPhone" placeholder="Phone Number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 12px; color: #555; margin-bottom: 5px; font-weight: 600;">Address</label>
+          <input type="text" id="editAddress" placeholder="Address" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 12px; color: #555; margin-bottom: 5px; font-weight: 600;">City</label>
+          <input type="text" id="editCity" placeholder="City" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 12px; color: #555; margin-bottom: 5px; font-weight: 600;">State</label>
+          <input type="text" id="editState" placeholder="State" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+
+        <div id="editError" style="color: #ff4444; font-size: 12px; margin-bottom: 10px; display: none;"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button id="saveProfileBtn" onclick="saveProfileChanges(this)" style="flex: 1; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          💾 Save
+        </button>
+        <button onclick="toggleEditMode()" style="flex: 1; background: #ccc; color: #333; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          ✕ Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include the shared data file -->
+<script src="shared-data.js"></script>
+
+<script>
+  // Get user initial for display
+  function getUserInitial(user) {
+    if (!user) return 'G';
+    
+    // Try name first
+    if (user.name && user.name.trim()) {
+      return user.name.trim().charAt(0).toUpperCase();
+    }
+    
+    // If no name, use email (not phone)
+    if (user.email && user.email.trim()) {
+      return user.email.trim().charAt(0).toUpperCase();
+    }
+    
+    // Default fallback
+    return 'U';
+  }
+
+  // Get display name for welcome message
+  function getDisplayName(user) {
+    if (!user) return 'User';
+    
+    // If name exists, use it
+    if (user.name && user.name.trim()) {
+      return user.name.trim();
+    }
+    
+    // If no name but has email, extract name from email
+    if (user.email && user.email.trim()) {
+      const emailName = user.email.split('@')[0];
+      // Capitalize first letter
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    
+    // If only phone number
+    if (user.phone && user.phone.trim()) {
+      return 'User';
+    }
+    
+    return 'User';
+  }
+
+  // Format date nicely
+  function formatDate(dateString) {
+    if (!dateString) return 'Not available';
+    
+    try {
+      const date = new Date(dateString);
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    } catch (e) {
+      return 'Not available';
+    }
+  }
+
+  // Update dashboard with current user info
+  window.onload = function() {
+    console.log('Dashboard loading...');
+    
+    const user = getCurrentUser();
+    
+    console.log('Current user:', user);
+    
+    // Update welcome name (use display name function)
+    const welcomeName = getDisplayName(user);
+    document.getElementById('welcomeName').textContent = welcomeName;
+    
+    // Update profile icon with user's initial
+    const initial = getUserInitial(user);
+    document.getElementById('profileIcon').textContent = initial;
+    
+    console.log('Dashboard loaded for:', welcomeName, 'Initial:', initial);
+  };
+
+  // Open profile sidebar
+  function openProfileSidebar() {
+    const user = getCurrentUser();
+    
+    console.log('Opening profile sidebar for user:', user);
+
+    // Get initial
+    const initial = getUserInitial(user);
+    
+    // Update sidebar avatar
+    document.getElementById('sidebarAvatar').textContent = initial;
+    
+    // Update sidebar name (use display name function)
+    const displayName = getDisplayName(user);
+    document.getElementById('sidebarName').textContent = displayName;
+    
+    // Update sidebar email
+    document.getElementById('sidebarEmail').textContent = user.email || 'Not provided';
+    
+    // Update phone
+    document.getElementById('sidebarPhone').textContent = user.phone || 'Not provided';
+    
+    // Update address
+    document.getElementById('sidebarAddress').textContent = user.address || 'Not provided';
+    
+    // Update city
+    document.getElementById('sidebarCity').textContent = user.city || 'Not provided';
+    
+    // Update state
+    document.getElementById('sidebarState').textContent = user.state || 'Not provided';
+    
+    // Update member since date
+    document.getElementById('sidebarJoined').textContent = formatDate(user.memberSince || user.registeredDate);
+
+    // Update order count
+    const orders = getUserOrders(user.email);
+    document.getElementById('sidebarOrderCount').textContent = orders.length;
+
+    // Show sidebar
+    document.getElementById('profileOverlay').classList.add('active');
+    document.getElementById('profileSidebar').classList.add('active');
+    
+    console.log('Profile sidebar opened with data:', {
+      name: displayName,
+      email: user.email,
+      phone: user.phone
+    });
+  }
+
+  // Get orders for a specific user
+  function getUserOrders(email) {
+    try {
+      const allOrders = localStorage.getItem('userOrders');
+      if (!allOrders) return [];
+      
+      const orders = JSON.parse(allOrders);
+      return orders[email.toLowerCase()] || [];
+    } catch (e) {
+      console.error('Error reading user orders:', e);
+      return [];
+    }
+  }
+
+  // Add new order for user
+  function addOrder(email, orderData) {
+    try {
+      const allOrders = JSON.parse(localStorage.getItem('userOrders') || '{}');
+      const emailLower = email.toLowerCase();
+      
+      if (!allOrders[emailLower]) {
+        allOrders[emailLower] = [];
+      }
+      
+      const order = {
+        orderId: 'ORD-' + Date.now(),
+        ...orderData,
+        createdAt: new Date().toISOString()
+      };
+      
+      allOrders[emailLower].push(order);
+      localStorage.setItem('userOrders', JSON.stringify(allOrders));
+      
+      console.log('Order added:', order);
+      return order;
+    } catch (e) {
+      console.error('Error adding order:', e);
+      return null;
+    }
+  }
+
+  // View orders
+  function viewOrders() {
+    const user = getCurrentUser();
+    if (!user) {
+      alert('Please login first');
+      return;
+    }
+
+    // Redirect to profile page to view orders
+    window.location.href = 'profile.html';
+  }
+
+  // Close profile sidebar
+  function closeProfileSidebar() {
+    document.getElementById('profileOverlay').classList.remove('active');
+    document.getElementById('profileSidebar').classList.remove('active');
+    toggleEditMode(true); // Reset to view mode
+  }
+
+  // Toggle between view and edit mode
+  function toggleEditMode(forceViewMode = false) {
+    const viewMode = document.getElementById('profileViewMode');
+    const editMode = document.getElementById('profileEditMode');
+    
+    if (forceViewMode) {
+      viewMode.style.display = 'block';
+      editMode.style.display = 'none';
+    } else {
+      // Toggle
+      const isEditMode = editMode.style.display !== 'none';
+      if (isEditMode) {
+        // Switch to view mode
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+      } else {
+        // Switch to edit mode - populate fields
+        const user = getCurrentUser();
+        document.getElementById('editPhone').value = user.phone || '';
+        document.getElementById('editAddress').value = user.address || '';
+        document.getElementById('editCity').value = user.city || '';
+        document.getElementById('editState').value = user.state || '';
+        document.getElementById('editError').style.display = 'none';
+        
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+      }
+    }
+  }
+
+  // Save profile changes to database
+  function saveProfileChanges(saveBtn) {
+    const user = getCurrentUser();
+    if (!user || !user.id) {
+      alert('User information not found. Please login again.');
+      return;
+    }
+
+    const phone = document.getElementById('editPhone').value.trim();
+    const address = document.getElementById('editAddress').value.trim();
+    const city = document.getElementById('editCity').value.trim();
+    const state = document.getElementById('editState').value.trim();
+    const errorDiv = document.getElementById('editError');
+
+    // Basic validation
+    if (!phone) {
+      errorDiv.textContent = 'Phone number is required';
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    // Show loading state
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = '⏳ Saving...';
+    saveBtn.disabled = true;
+
+    // Save to database
+    fetch(`http://localhost:5000/api/auth/user/${user.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        phone: phone,
+        address: address,
+        city: city,
+        state: state
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Save response:', data);
+      
+      if (data.success) {
+        console.log('Profile updated successfully:', data.user);
+        
+        // Store the complete updated user data from backend
+        const updatedUser = data.user || {
+          ...user,
+          phone: phone,
+          address: address,
+          city: city,
+          state: state
+        };
+        
+        // Update currentUser in localStorage with all data
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        
+        // Update the sidebar display immediately
+        document.getElementById('sidebarPhone').textContent = updatedUser.phone || 'Not provided';
+        document.getElementById('sidebarAddress').textContent = updatedUser.address || 'Not provided';
+        document.getElementById('sidebarCity').textContent = updatedUser.city || 'Not provided';
+        document.getElementById('sidebarState').textContent = updatedUser.state || 'Not provided';
+        
+        // Hide edit mode
+        document.getElementById('profileViewMode').style.display = 'block';
+        document.getElementById('profileEditMode').style.display = 'none';
+        
+        // Show success message
+        alert('✅ Profile updated successfully!');
+        
+        // Reset button
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+      } else {
+        console.error('Save failed:', data.message);
+        errorDiv.textContent = data.message || 'Failed to update profile';
+        errorDiv.style.display = 'block';
+        
+        // Reset button
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error updating profile:', error);
+      errorDiv.textContent = 'Error connecting to server. Please try again.';
+      errorDiv.style.display = 'block';
+      
+      // Reset button
+      saveBtn.textContent = originalText;
+      saveBtn.disabled = false;
+    });
+  }
+
+  // Logout function
+  function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+      console.log('User logging out');
+      logoutUser();
+    }
+  }
+
+  // Close sidebar when pressing Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeProfileSidebar();
+    }
+  });
+
+  // Debug: Press Ctrl+D to see storage
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'd') {
+      e.preventDefault();
+      debugStorage();
+    }
+  });
+
+  function loadProfileImageInNavbar() {
+    const profileContainer = document.getElementById('navbarProfile');
+    if (!profileContainer) return;
+    
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (!currentUser) {
+        profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Login</a>';
+        return;
+      }
+      
+      const profileImageUrl = localStorage.getItem('profileImageUrl');
+      const userName = currentUser.name || 'User';
+      const userEmail = currentUser.email || '';
+      const userPhone = currentUser.phone || 'Not provided';
+      const userCity = currentUser.city || 'Not specified';
+      const userState = currentUser.state || '';
+      
+      let avatarHtml = '';
+      if (profileImageUrl) {
+        avatarHtml = `<img src="${profileImageUrl}" alt="${userName}" onerror="this.src='https://via.placeholder.com/40x40?text=${userName.charAt(0).toUpperCase()}'">`;
+      } else {
+        const initials = userName.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+        avatarHtml = `<div style="background: linear-gradient(135deg, #66bb6a, #2e7d32); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem; width: 100%; height: 100%;">${initials}</div>`;
+      }
+      
+      let avatarHtmlDropdown = '';
+      if (profileImageUrl) {
+        avatarHtmlDropdown = `<img src="${profileImageUrl}" alt="${userName}" onerror="this.src='https://via.placeholder.com/50x50?text=${userName.charAt(0).toUpperCase()}'">`;
+      } else {
+        const initials = userName.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+        avatarHtmlDropdown = `<div style="background: linear-gradient(135deg, #66bb6a, #2e7d32); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; width: 100%; height: 100%;">${initials}</div>`;
+      }
+      
+      profileContainer.innerHTML = `
+        <div class="profile-image-navbar" id="profileIconToggle" onclick="toggleProfileDropdown(event)">
+          ${avatarHtml}
+        </div>
+        <span class="nav-link" style="margin-left: 0; cursor: pointer;" onclick="toggleProfileDropdown(event)">${userName}</span>
+        
+        <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
+          <div class="profile-dropdown-header">
+            <div class="profile-dropdown-avatar">
+              ${avatarHtmlDropdown}
+            </div>
+            <div class="profile-dropdown-info">
+              <div class="profile-dropdown-name">${userName}</div>
+              <div class="profile-dropdown-email">${userEmail}</div>
+            </div>
+          </div>
+          
+          <div class="profile-dropdown-body">
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">📞 Phone</span>
+              <span class="profile-detail-value">${userPhone}</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">📍 Location</span>
+              <span class="profile-detail-value">${userCity}${userState ? ', ' + userState : ''}</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">✅ Status</span>
+              <span class="profile-detail-value" style="color: #4caf50; font-weight: 600;">Verified</span>
+            </div>
+          </div>
+          
+          <div class="profile-dropdown-footer">
+            <a href="profile.html" class="profile-btn-view">View Profile</a>
+            <a href="#" class="profile-btn-logout" onclick="logoutUser(event)">Logout</a>
+          </div>
+        </div>
+      `;
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        const profileContainer = document.getElementById('navbarProfile');
+        if (dropdown && profileContainer && !profileContainer.contains(event.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error loading profile image:', error);
+      profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Profile</a>';
+    }
+  }
+
+  function toggleProfileDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('active');
+    }
+  }
+
+  function logoutUser(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('profileImageUrl');
+      window.location.href = 'index.html';
+    }
+  }
+  
+  loadProfileImageInNavbar();
+</script>
+
+<!-- FOOTER SECTION -->
+<footer>
+  <div class="container">
+    <!-- Top Footer: 3 columns -->
+    <div class="footer-top-row">
+      <!-- Left: Contact -->
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+
+      <!-- Center: Brand -->
+      <div class="footer-col-center">
+        <span class="footer-logo">🌿 GreenSphere</span>
+      </div>
+
+      <!-- Right: Social Icons -->
+      <div class="footer-col-right">
+       <div class="social-section">
+  <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+  <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+  <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+  <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+</div>
+      
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</body>
+</html>

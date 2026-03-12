@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nurseries | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #EDF9EB; font-family: "Segoe UI", sans-serif; }
+    .navbar-brand { font-weight: bold; color: #2e7d32 !important; }
+    .location-panel { background: white; border-radius: 18px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.06); margin-bottom: 30px; }
+    .selection-section { margin-bottom: 20px; }
+    .section-title { font-size: 1.1rem; font-weight: 600; color: #2e7d32; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; }
+    .checkbox-label { display: flex; align-items: center; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 25px; padding: 8px 16px; cursor: pointer; transition: all 0.3s; user-select: none; }
+    .checkbox-label:hover { background: #e8f5e9; border-color: #2e7d32; }
+    .checkbox-label.selected { background: #2e7d32; color: white; border-color: #2e7d32; box-shadow: 0 4px 15px rgba(46,125,50,0.3); }
+    .checkbox-label input[type="checkbox"], .checkbox-label input[type="radio"] { margin-right: 8px; cursor: pointer; accent-color: #2e7d32; }
+    .count-badge { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-left: 6px; }
+    .hidden-section { display: none; }
+    .nursery-card { background: #ffffff; border-radius: 18px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.06); margin-bottom: 20px; transition: transform 0.2s, box-shadow 0.2s; }
+    .nursery-card:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0,0,0,0.1); }
+    .nursery-card h5 { color: #2e7d32; font-weight: 600; margin-bottom: 8px; }
+    .plant-count { background-color: #4caf50; color: white; border-radius: 12px; padding: 4px 10px; font-size: 0.85rem; display: inline-block; margin-top: 5px; }
+    .btn-success { background-color: #2e7d32; border: none; border-radius: 25px; padding: 8px 20px; margin-right: 8px; }
+    .btn-success:hover { background-color: #1b5e20; }
+    .map-btn { background-color: #1976d2; border: none; border-radius: 25px; padding: 8px 20px; color: white; }
+    .map-btn:hover { background-color: #1565c0; }
+    .no-results { text-align: center; padding: 40px; background: white; border-radius: 18px; box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
+    .no-results h4 { color: #666; margin-bottom: 10px; }
+    .coming-soon-message { background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border-left: 4px solid #ffc107; padding: 20px; border-radius: 12px; margin-top: 15px; }
+    .coming-soon-message h5 { color: #856404; font-weight: 600; margin-bottom: 8px; }
+    .coming-soon-message p { color: #856404; margin: 0; }
+    .distance-label { color: #2e7d32; font-weight: 600; font-size: 1rem; margin-bottom: 8px; }
+
+    /* ── NAVBAR PROFILE ── */
+    .navbar-profile { display: flex; align-items: center; gap: 15px; margin-left: 20px; padding-left: 20px; border-left: 1px solid #e0e0e0; position: relative; }
+    .profile-image-navbar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid #2e7d32; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+    .profile-image-navbar:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(46,125,50,0.3); }
+    .profile-image-navbar img { width: 100%; height: 100%; object-fit: cover; }
+    @media (max-width: 768px) { .navbar-profile { margin-left: 0; padding-left: 0; border-left: none; margin-top: 10px; } }
+
+    /* ── PROFILE DROPDOWN (matches dashboard exactly) ── */
+    .profile-dropdown {
+      position: fixed; top: 65px; right: 10px;
+      background: white; border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(46,125,50,0.22);
+      min-width: 310px; display: none; z-index: 999999;
+      border: 1px solid #e0e0e0;
+      animation: slideDown 0.25s ease-out; isolation: isolate;
+    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .profile-dropdown.active { display: block; }
+    .profile-dropdown-header { padding: 20px; background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; border-radius: 13px 13px 0 0; display: flex; align-items: center; gap: 15px; }
+    .profile-dropdown-avatar { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 2px solid white; flex-shrink: 0; }
+    .profile-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-dropdown-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .profile-dropdown-email { font-size: 0.85rem; opacity: 0.9; }
+    .profile-dropdown-body { padding: 15px 20px; }
+    .profile-detail-row { padding: 10px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .profile-detail-row:last-child { border-bottom: none; }
+    .profile-detail-label { font-weight: 600; color: #666; font-size: 0.9rem; }
+    .profile-detail-value { color: #333; font-size: 0.9rem; text-align: right; max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-dropdown-footer { padding: 14px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; }
+    .profile-dropdown-footer a { flex: 1; padding: 10px; text-align: center; border-radius: 9px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.25s; }
+    .profile-btn-edit { background: linear-gradient(135deg, #66bb6a, #2e7d32); color: white; }
+    .profile-btn-edit:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(46,125,50,0.35); text-decoration: none; color: white; }
+    .profile-btn-logout { background: #f5f5f5; color: #f44336; border: 1px solid #f0f0f0; }
+    .profile-btn-logout:hover { background: #ffebee; text-decoration: none; }
+
+    /* Footer */
+    footer { background: linear-gradient(135deg, #ffffff, #f0fff0); color: #4caf50; padding: 40px 50px 25px; margin: 40px 40px 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(46,125,50,0.15), 0 8px 25px rgba(0,0,0,0.08); border: 1px solid rgba(46,125,50,0.1); }
+    .footer-top-row { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding-bottom: 30px; }
+    .footer-col-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-col-left a { color: #4caf50; text-decoration: underline; font-size: 14px; transition: color 0.3s; }
+    .footer-col-left a:hover { color: #2e7d32; }
+    .footer-col-center { text-align: center; }
+    .footer-logo { font-size: 28px; font-weight: 700; color: #2e7d32; letter-spacing: 2px; }
+    .footer-col-right { display: flex; justify-content: flex-end; }
+    .social-section { display: flex; gap: 18px; }
+    .social-icon { width: 36px; height: 36px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #4caf50; text-decoration: none; font-size: 16px; transition: all 0.3s ease; border: 1px solid rgba(46,125,50,0.3); }
+    .social-icon:hover { background: #2e7d32; color: white; border-color: #2e7d32; transform: translateY(-3px); }
+    .footer-divider { border-color: rgba(46,125,50,0.1); margin: 0 0 20px 0; }
+    .footer-bottom { text-align: center; font-size: 12px; color: #81c784; display: flex; flex-direction: column; gap: 8px; }
+    .footer-bottom p { margin: 0; }
+    .footer-bottom-links { display: flex; justify-content: center; gap: 20px; }
+    .footer-bottom-links a { color: #81c784; text-decoration: underline; font-size: 13px; transition: color 0.3s; }
+    .footer-bottom-links a:hover { color: #4caf50; }
+    @media (max-width: 768px) { .footer-top-row { grid-template-columns: 1fr; text-align: center; gap: 25px; } .footer-col-right { justify-content: center; } .footer-bottom-links { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm" style="position:relative;z-index:10000;">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🌿 GreenSphere</a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="identify.html">Identify</a></li>
+      <li class="nav-item"><a class="nav-link" href="disease.html">Disease</a></li>
+      <li class="nav-item"><a class="nav-link active" href="nursery.html">Nurseries</a></li>
+      <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+    </ul>
+    <div class="navbar-profile" id="navbarProfile"></div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <h2 class="fw-bold text-success mb-3">🏪 Find Nurseries Near You</h2>
+  <p class="text-muted mb-4">Select your location to discover nearby plant nurseries and check plant availability.</p>
+
+  <div class="location-panel">
+    <!-- State Selection -->
+    <div class="selection-section">
+      <div class="section-title"><span>📍</span> Select State in India</div>
+      <div class="checkbox-group" id="stateGroup">
+        <label class="checkbox-label"><input type="radio" name="state" value="Telangana" onchange="handleStateChange(this)"><span>Telangana <span class="count-badge">1 city</span></span></label>
+        <label class="checkbox-label"><input type="radio" name="state" value="Andhra Pradesh" onchange="handleStateChange(this)"><span>Andhra Pradesh <span class="count-badge">Coming Soon</span></span></label>
+        <label class="checkbox-label"><input type="radio" name="state" value="Karnataka" onchange="handleStateChange(this)"><span>Karnataka <span class="count-badge">Coming Soon</span></span></label>
+        <label class="checkbox-label"><input type="radio" name="state" value="Maharashtra" onchange="handleStateChange(this)"><span>Maharashtra <span class="count-badge">Coming Soon</span></span></label>
+        <label class="checkbox-label"><input type="radio" name="state" value="Tamil Nadu" onchange="handleStateChange(this)"><span>Tamil Nadu <span class="count-badge">Coming Soon</span></span></label>
+      </div>
+    </div>
+    <!-- City Selection -->
+    <div class="selection-section hidden-section" id="citySection">
+      <div class="section-title"><span>🏙️</span> Select City</div>
+      <div class="checkbox-group" id="cityGroup">
+        <label class="checkbox-label"><input type="radio" name="city" value="Hyderabad" onchange="handleCityChange(this)"><span>Hyderabad <span class="count-badge">6 areas</span></span></label>
+        <label class="checkbox-label"><input type="radio" name="city" value="Warangal" onchange="handleCityChange(this)"><span>Warangal <span class="count-badge">Coming Soon</span></span></label>
+        <label class="checkbox-label"><input type="radio" name="city" value="Nizamabad" onchange="handleCityChange(this)"><span>Nizamabad <span class="count-badge">Coming Soon</span></span></label>
+      </div>
+    </div>
+    <!-- Area Selection -->
+    <div class="selection-section hidden-section" id="areaSection">
+      <div class="section-title"><span>📌</span> Select Area/Location</div>
+      <div class="checkbox-group" id="areaGroup">
+        <label class="checkbox-label"><input type="checkbox" name="area" value="Gachibowli" onchange="handleAreaChange()"><span>Gachibowli <span class="count-badge">5 nurseries</span></span></label>
+        <label class="checkbox-label"><input type="checkbox" name="area" value="Hitech City" onchange="handleAreaChange()"><span>Hitech City <span class="count-badge">3 nurseries</span></span></label>
+        <label class="checkbox-label"><input type="checkbox" name="area" value="Banjara Hills" onchange="handleAreaChange()"><span>Banjara Hills <span class="count-badge">3 nurseries</span></span></label>
+        <label class="checkbox-label"><input type="checkbox" name="area" value="Jubilee Hills" onchange="handleAreaChange()"><span>Jubilee Hills <span class="count-badge">3 nurseries</span></span></label>
+        <label class="checkbox-label"><input type="checkbox" name="area" value="Madhapur" onchange="handleAreaChange()"><span>Madhapur <span class="count-badge">2 nurseries</span></span></label>
+        <label class="checkbox-label"><input type="checkbox" name="area" value="Kukatpally" onchange="handleAreaChange()"><span>Kukatpally <span class="count-badge">3 nurseries</span></span></label>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsSection">
+    <div class="no-results">
+      <h4>👆 Please select a location to view nurseries</h4>
+      <p class="text-muted">Start by selecting your state, then city, and finally your area</p>
+    </div>
+  </div>
+  <div id="nurseryContainer" style="display:none;"></div>
+</div>
+
+<script>
+const nurseries = [
+  { name:"Greenland Gardening Services", area:"Gachibowli", city:"Hyderabad", state:"Telangana", address:"Plot No 23, 365 Diamond Hills, Gachibowli, Hyderabad-500032", specialty:"Indoor & Medicinal Plants", plantCount:150, plants:["Tulsi","Aloe Vera","Money Plant","Snake Plant"], lat:17.4401, lng:78.3489 },
+  { name:"PlantiQue", area:"Gachibowli", city:"Hyderabad", state:"Telangana", address:"Main Road, Lumbini Avenue, Gachibowli, Hyderabad 500032", specialty:"Flowering & Ornamental Plants", plantCount:200, plants:["Rose","Marigold","Jasmine","Orchids"], lat:17.4435, lng:78.3512 },
+  { name:"Lakshmi Greens Nursery", area:"Gachibowli", city:"Hyderabad", state:"Telangana", address:"Plot No.134/2, opp. SLN Terminus, Kondapur, Gachibowli, Hyderabad 500084", specialty:"Succulents & Air Plants", plantCount:120, plants:["Cacti","Jade Plant","Air Plants","Succulents"], lat:17.4467, lng:78.3534 },
+  { name:"RADHA KRISHNA NURSERY", area:"Gachibowli", city:"Hyderabad", state:"Telangana", address:"Ishtaa hotel beside, Diamond Hills, Lumbini Avenue, Gachibowli, Hyderabad 500032", specialty:"Vegetable Saplings & Herbs", plantCount:180, plants:["Tomato","Curry Leaf","Coriander","Mint"], lat:17.4489, lng:78.3567 },
+  { name:"Sri Venkataramanjaneya Nursery", area:"Gachibowli", city:"Hyderabad", state:"Telangana", address:"Survey No 10, Back side Renault, Survey of India Colony, Madhapur, Hyderabad 500081", specialty:"Vegetable Saplings & Herbs", plantCount:180, plants:["Tomato","Curry Leaf","Coriander","Mint"], lat:17.4489, lng:78.3567 },
+  { name:"FLORAMS: AN ABSOLUTE GARDEN STORE", area:"Hitech City", city:"Hyderabad", state:"Telangana", address:"beside Magna lake view apartment, Kondapur, Shilpa Hills, Hyderabad 500084", specialty:"Fruit Plants & Saplings", plantCount:160, plants:["Lemon","Mango","Guava","Papaya"], lat:17.4504, lng:78.3808 },
+  { name:"Sri Satyadeva Nursery & Gardens", area:"Hitech City", city:"Hyderabad", state:"Telangana", address:"Hitech City, Hyderabad", specialty:"Indoor Plants & Pots", plantCount:140, plants:["Pothos","ZZ Plant","Peace Lily","Bamboo Palm"], lat:17.4534, lng:78.3845 },
+  { name:"Paudhe Se Yaari", area:"Hitech City", city:"Hyderabad", state:"Telangana", address:"Walden's Path Rd, Ambedkar Nagar, Film Nagar, Hyderabad 500096", specialty:"Flowering & Garden Plants", plantCount:190, plants:["Hibiscus","Bougainvillea","Sunflower","Petunia"], lat:17.4567, lng:78.3890 },
+  { name:"Safi Nursery", area:"Banjara Hills", city:"Hyderabad", state:"Telangana", address:"536, Road No. 12, Banjara Green Colony, Banjara Hills, Hyderabad 500028", specialty:"Premium Plants & Landscaping", plantCount:250, plants:["Bonsai","Ficus","Palm Trees","Exotic Plants"], lat:17.4126, lng:78.4398 },
+  { name:"Tulasi Nursery", area:"Banjara Hills", city:"Hyderabad", state:"Telangana", address:"10-4-2 Humayun Nagar, Mehdipatnam, Hyderabad 500006", specialty:"Medicinal & Aromatic Plants", plantCount:130, plants:["Tulsi","Neem","Lavender","Rosemary"], lat:17.4189, lng:78.4445 },
+  { name:"Shree Kanakadhara Nursery", area:"Banjara Hills", city:"Hyderabad", state:"Telangana", address:"Road No. 10, Avenue 4, Banjara Hills, Hyderabad 500034", specialty:"Indoor Plants & Pots", plantCount:140, plants:["Pothos","ZZ Plant","Peace Lily","Bamboo Palm"], lat:17.4534, lng:78.3845 },
+  { name:"Jeswarup Nursery", area:"Jubilee Hills", city:"Hyderabad", state:"Telangana", address:"Plot no 237, Road No. 78, Phase III, Film Nagar, Hyderabad 500096", specialty:"Designer Plants & Decor", plantCount:170, plants:["Anthuriums","Ferns","Calathea","Planters"], lat:17.4312, lng:78.4098 },
+  { name:"JUST PLANTS", area:"Jubilee Hills", city:"Hyderabad", state:"Telangana", address:"652, Road No. 34, Aditya Enclave, Jubilee Hills, Hyderabad 500033", specialty:"Organic Plants & Seeds", plantCount:145, plants:["Organic Seeds","Spinach","Lettuce","Basil"], lat:17.4378, lng:78.4123 },
+  { name:"POOJA NURSERY", area:"Jubilee Hills", city:"Hyderabad", state:"Telangana", address:"Rd Number 82, Jubilee Hills, Hyderabad 500096", specialty:"Wide Variety & Fast Delivery", plantCount:220, plants:["Indoor Mix","Outdoor Mix","Gift Plants","Plant Care"], lat:17.4483, lng:78.3915 },
+  { name:"Sri Venkataramanjaneya Nursery & Garden Services", area:"Madhapur", city:"Hyderabad", state:"Telangana", address:"Survey No 10, Back side Renault, Survey of India Colony, Madhapur, Hyderabad 500081", specialty:"Wide Variety & Fast Delivery", plantCount:220, plants:["Indoor Mix","Outdoor Mix","Gift Plants","Plant Care"], lat:17.4483, lng:78.3915 },
+  { name:"Shamsu Khan Nursery", area:"Madhapur", city:"Hyderabad", state:"Telangana", address:"12, Madhapur Rd, Kavuri Hills, Jubilee Hills, Hyderabad 500081", specialty:"Kitchen Garden Specialists", plantCount:155, plants:["Chilli","Brinjal","Beans","Capsicum"], lat:17.4512, lng:78.3956 },
+  { name:"Vanamali Gardens and Interiors", area:"Kukatpally", city:"Hyderabad", state:"Telangana", address:"15th phase, Green Hills Rd, Kukatpally, Hyderabad 500072", specialty:"All Types of Plants", plantCount:210, plants:["Crotons","Areca Palm","Rubber Plant","Dracaena"], lat:17.4948, lng:78.3984 },
+  { name:"Plant Nursery", area:"Kukatpally", city:"Hyderabad", state:"Telangana", address:"KPHB Phase 7, Kukatpally, Hyderabad 500085", specialty:"Budget-Friendly Plants", plantCount:175, plants:["Seasonal Plants","Soil & Fertilizers","Gardening Tools","Seeds"], lat:17.5012, lng:78.4023 },
+  { name:"KPHB Nursery", area:"Kukatpally", city:"Hyderabad", state:"Telangana", address:"KPHB Phase 7, Kukatpally, Hyderabad 500085", specialty:"Budget-Friendly Plants", plantCount:175, plants:["Seasonal Plants","Soil & Fertilizers","Gardening Tools","Seeds"], lat:17.5012, lng:78.4023 }
+];
+
+let selectedState = null;
+let selectedCity = null;
+
+function handleStateChange(radio) {
+  document.querySelectorAll('input[name="state"]').forEach(r => r.parentElement.classList.remove('selected'));
+  if (radio.checked) {
+    radio.parentElement.classList.add('selected');
+    selectedState = radio.value;
+    resetCitySelection();
+    resetAreaSelection();
+    const citySection = document.getElementById('citySection');
+    const areaSection = document.getElementById('areaSection');
+    if (selectedState === 'Telangana') {
+      citySection.classList.remove('hidden-section');
+      areaSection.classList.add('hidden-section');
+      showMessage('🏙️ Now select a city', 'Choose a city in Telangana to continue');
+    } else {
+      citySection.classList.add('hidden-section');
+      areaSection.classList.add('hidden-section');
+      showComingSoon(selectedState);
+    }
+  }
+}
+
+function handleCityChange(radio) {
+  document.querySelectorAll('input[name="city"]').forEach(r => r.parentElement.classList.remove('selected'));
+  if (radio.checked) {
+    radio.parentElement.classList.add('selected');
+    selectedCity = radio.value;
+    resetAreaSelection();
+    const areaSection = document.getElementById('areaSection');
+    if (selectedCity === 'Hyderabad') {
+      areaSection.classList.remove('hidden-section');
+      showMessage('📌 Now select an area to view nurseries', `Choose one or more areas in ${selectedCity}`);
+    } else {
+      areaSection.classList.add('hidden-section');
+      showComingSoon(selectedCity);
+    }
+  }
+}
+
+function handleAreaChange() {
+  const selectedAreas = [];
+  document.querySelectorAll('input[name="area"]').forEach(cb => {
+    if (cb.checked) { cb.parentElement.classList.add('selected'); selectedAreas.push(cb.value); }
+    else { cb.parentElement.classList.remove('selected'); }
+  });
+  if (selectedAreas.length > 0) displayNurseries(selectedAreas);
+  else showMessage('📌 Now select an area to view nurseries', `Choose one or more areas in ${selectedCity}`);
+}
+
+function resetCitySelection() {
+  document.querySelectorAll('input[name="city"]').forEach(r => { r.checked = false; r.parentElement.classList.remove('selected'); });
+  selectedCity = null;
+}
+
+function resetAreaSelection() {
+  document.querySelectorAll('input[name="area"]').forEach(cb => { cb.checked = false; cb.parentElement.classList.remove('selected'); });
+  document.getElementById('nurseryContainer').style.display = 'none';
+}
+
+function showMessage(title, subtitle) {
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('resultsSection').innerHTML = `<div class="no-results"><h4>${title}</h4><p class="text-muted">${subtitle}</p></div>`;
+  document.getElementById('nurseryContainer').style.display = 'none';
+}
+
+function showComingSoon(name) {
+  document.getElementById('nurseryContainer').style.display = 'none';
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('resultsSection').innerHTML = `<div class="coming-soon-message"><h5>🚧 ${name} - Coming Soon!</h5><p>We're working hard to add nurseries here. Stay tuned!</p></div>`;
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+}
+
+function viewAndOrder(nurseryDataJson) {
+  const nursery = JSON.parse(decodeURIComponent(nurseryDataJson));
+  sessionStorage.setItem('selectedNursery', nursery.name);
+  sessionStorage.setItem('selectedNurseryData', JSON.stringify({
+    name: nursery.name, area: nursery.area, city: nursery.city,
+    state: nursery.state, distance: nursery.distance || ''
+  }));
+  window.location.href = 'nursery-order.html';
+}
+
+function buildNurseryCard(nursery) {
+  const distanceHtml = nursery.distance ? `<p class="distance-label">📍 ${nursery.distance} km from your location</p>` : '';
+  const nurseryJson = encodeURIComponent(JSON.stringify({
+    name: nursery.name, area: nursery.area, city: nursery.city,
+    state: nursery.state, distance: nursery.distance || ''
+  }));
+  return `
+    <div class="nursery-card">
+      <h5>${nursery.name}</h5>
+      <p class="mb-1">📍 ${nursery.area}, ${nursery.city}</p>
+      <p class="text-muted mb-2" style="font-size:0.9rem;">${nursery.address}</p>
+      <p class="text-muted mb-2">${nursery.specialty}</p>
+      <div class="plant-count">🌱 ${nursery.plantCount}+ plants available</div>
+      ${distanceHtml}
+      <div class="mt-3">
+        <button class="btn btn-success" onclick="viewAndOrder('${nurseryJson}')">View &amp; Order</button>
+        <button class="map-btn" onclick="openMap(${nursery.lat}, ${nursery.lng}, '${nursery.name.replace(/'/g,"\\'")}')">📍 View Map</button>
+      </div>
+    </div>`;
+}
+
+function displayNurseries(selectedAreas) {
+  const container = document.getElementById('nurseryContainer');
+  const resultsSection = document.getElementById('resultsSection');
+  const filteredNurseries = nurseries.filter(n => selectedAreas.includes(n.area));
+  if (filteredNurseries.length === 0) { showMessage('No nurseries found', 'Try selecting a different area.'); return; }
+  resultsSection.style.display = 'none';
+  container.style.display = 'block';
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+        const withDistance = filteredNurseries
+          .map(n => ({ ...n, distance: parseFloat(calculateDistance(userLat, userLon, n.lat, n.lng)) }))
+          .sort((a, b) => a.distance - b.distance);
+        container.innerHTML = withDistance.map(buildNurseryCard).join('');
+      },
+      () => { container.innerHTML = filteredNurseries.map(buildNurseryCard).join(''); }
+    );
+  } else {
+    container.innerHTML = filteredNurseries.map(buildNurseryCard).join('');
+  }
+}
+
+function openMap(lat, lng, name) {
+  window.open(`https://www.google.com/maps/search/${encodeURIComponent(name)}/@${lat},${lng},15z`, '_blank');
+}
+
+/* ── NAVBAR PROFILE (matches dashboard exactly) ── */
+function loadProfileImageInNavbar() {
+  const profileContainer = document.getElementById('navbarProfile');
+  if (!profileContainer) return;
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) { profileContainer.innerHTML = '<a href="registration.html" class="nav-link">Login</a>'; return; }
+
+    const profileImageUrl = localStorage.getItem('profileImageUrl');
+    const userName  = currentUser.name  || 'User';
+    const userEmail = currentUser.email || '';
+    const userPhone = currentUser.phone || 'Not provided';
+    const userCity  = currentUser.city  || 'Not specified';
+    const userState = currentUser.state || '';
+    const initials  = userName.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+
+    const makeAvatar = (sz) => profileImageUrl
+      ? `<img src="${profileImageUrl}" alt="${userName}">`
+      : `<div style="background:linear-gradient(135deg,#66bb6a,#2e7d32);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${sz==='sm'?'0.9':'1.2'}rem;width:100%;height:100%;">${initials}</div>`;
+
+    profileContainer.innerHTML = `
+      <div class="profile-image-navbar" onclick="toggleProfileDropdown(event)">${makeAvatar('sm')}</div>
+      <span class="nav-link" style="margin-left:0;cursor:pointer;" onclick="toggleProfileDropdown(event)">${userName}</span>
+      <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
+        <div class="profile-dropdown-header">
+          <div class="profile-dropdown-avatar">${makeAvatar('lg')}</div>
+          <div>
+            <div class="profile-dropdown-name">${userName}</div>
+            <div class="profile-dropdown-email">${userEmail}</div>
+          </div>
+        </div>
+        <div class="profile-dropdown-body">
+          <div class="profile-detail-row"><span class="profile-detail-label">📞 Phone</span><span class="profile-detail-value">${userPhone}</span></div>
+          <div class="profile-detail-row"><span class="profile-detail-label">📍 Location</span><span class="profile-detail-value">${userCity}${userState ? ', '+userState : ''}</span></div>
+          <div class="profile-detail-row"><span class="profile-detail-label">✅ Status</span><span class="profile-detail-value" style="color:#4caf50;font-weight:600;">Verified</span></div>
+        </div>
+        <div class="profile-dropdown-footer">
+          <a href="profile.html?edit=1" class="profile-btn-edit">✏️ Edit Profile</a>
+          <a href="#" class="profile-btn-logout" onclick="logoutUser(event)">Logout</a>
+        </div>
+      </div>`;
+
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('profileDropdown');
+      if (dd && !profileContainer.contains(e.target)) dd.classList.remove('active');
+    });
+  } catch(e) { profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Profile</a>'; }
+}
+
+function toggleProfileDropdown(event) {
+  event.stopPropagation();
+  document.getElementById('profileDropdown')?.classList.toggle('active');
+}
+
+function logoutUser(event) {
+  event.preventDefault();
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('profileImageUrl');
+    window.location.href = 'index.html';
+  }
+}
+
+loadProfileImageInNavbar();
+</script>
+
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center"><span class="footer-logo">🌿 GreenSphere</span></div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</body>
+</html>

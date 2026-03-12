@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightMeter Analysis</title>
+    <link rel="stylesheet" href="/lightmeter.css">
+</head>
+<body>
+    <div class="container">
+        <h1>LightMeter Analysis</h1>
+        
+        <div id="locationInfo" style="background-color: #e7f3ff; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <p><strong>📍 Current Location:</strong> <span id="currentLocation">Detecting location...</span></p>
+        </div>
+        
+        <input type="file" id="imageUpload" accept="image/*">
+        <div id="previewArea">
+            <img id="imagePreview" src="" alt="Image Preview" style="display:none;" />
+        </div>
+        <button id="analyzeBtn">Analyze Light</button>
+        
+        <div id="resultArea" style="display:none;">
+            <h2>Analysis Results</h2>
+            <p><strong>Location:</strong> <span id="resultLocation"></span></p>
+            <p><strong>🔍 Detected Plant:</strong> <span id="detectedPlantName" style="color: #2196F3; font-weight: bold; font-size: 16px;"></span> <span id="identificationMethod" style="color: #666; font-size: 12px;"></span></p>
+            <p><strong>Average Grayscale Value:</strong> <span id="grayscaleValue"></span></p>
+            <p><strong>Detected Light Level:</strong> <span id="detectedLight"></span></p>
+            <p><strong>Weather Condition:</strong> <span id="weatherCondition"></span></p>
+            <p><strong>Weather Sunlight Intensity:</strong> <span id="weatherIntensity"></span>%</p>
+            <p><strong>Temperature:</strong> <span id="temperature"></span>°C</p>
+            <p><strong>Humidity:</strong> <span id="humidity"></span>%</p>
+            
+            <div id="plantComparisonBox" style="background-color: #f0f8ff; padding: 12px; border-radius: 5px; margin-top: 15px; display:none; border-left: 4px solid #2196F3;">
+                <strong>🌱 Plant Light Requirements:</strong>
+                <p id="plantNameDisplay" style="margin: 8px 0;"></p>
+                <p style="margin: 4px 0;"><strong>Current Grayscale:</strong> <span id="currentGrayscale" style="color: #1976D2; font-weight: bold;"></span></p>
+                <p style="margin: 4px 0;"><strong>Ideal Grayscale Range:</strong> <span id="idealGrayscale" style="color: #1976D2; font-weight: bold;"></span></p>
+                <p id="plantMatch" style="margin: 8px 0; padding: 6px; border-radius: 3px;"></p>
+            </div>
+            
+            <div id="warningBox" style="background-color: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 15px; display:none;">
+                <strong>⚠️ Warning:</strong> <span id="warningText"></span>
+            </div>
+            
+            <div id="suggestionsBox" style="background-color: #d1ecf1; padding: 10px; border-radius: 5px; margin-top: 15px; display:none;">
+                <strong>💡 Suggestions:</strong>
+                <ul id="suggestionsList"></ul>
+            </div>
+            
+            <div id="smartSuggestionsBox" style="background-color: #d4edda; padding: 10px; border-radius: 5px; margin-top: 15px; display:none;">
+                <strong>🌱 Smart Recommendations:</strong>
+                <ul id="smartSuggestionsList"></ul>
+            </div>
+        </div>
+    </div>
+    <script src="/lightmeter.js"></script>
+</body>
+</html>

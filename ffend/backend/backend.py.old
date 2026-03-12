@@ -1,0 +1,1225 @@
+from flask import Flask, request, jsonify # type: ignore
+from flask import send_from_directory, render_template_string
+from flask_cors import CORS
+from PIL import Image
+import numpy as np
+import requests
+import base64
+import io
+from datetime import datetime
+import random
+from difflib import SequenceMatcher
+import google.generativeai as genai
+import json
+from config import Config
+from plantid_service import get_plantid_service
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
+# Load API Keys from config (which loads from .env)
+config = Config()
+GEMINI_API_KEYS = config.GEMINI_API_KEYS
+PLANTID_API_KEY = config.PLANTID_API_KEY
+PLANTID_API_KEY_BACKUP = config.PLANTID_API_KEY_BACKUP
+PLANTID_API_URL = config.PLANTID_API_URL
+OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY', '')  # Loaded from .env
+
+# Configure Gemini API with validation
+GEMINI_AVAILABLE = False
+if GEMINI_API_KEYS and len(GEMINI_API_KEYS) > 0:
+    gemini_key = GEMINI_API_KEYS[0]  # Use first key from rotation list
+    if gemini_key and gemini_key.strip():
+        try:
+            genai.configure(api_key=gemini_key)
+            GEMINI_AVAILABLE = True
+            print('[INFO] Gemini API configured successfully')
+        except Exception as e:
+            print(f'[WARNING] Gemini API configuration failed: {str(e)}')
+    else:
+        print('[WARNING] Gemini API key is empty. System will use fallback plant database for light requirements')
+else:
+    print('[WARNING] Gemini API keys not set in .env. System will use fallback plant database for light requirements')
+
+# Plant Database with ideal light requirements (grayscale values)
+PLANT_DATABASE = {
+    'snake plant': {'min': 50, 'max': 200, 'ideal': 'Low to Bright', 'is_low_light': True},
+    'pothos': {'min': 60, 'max': 180, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'philodendron': {'min': 65, 'max': 170, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'monstera': {'min': 80, 'max': 200, 'ideal': 'Medium to Bright', 'is_low_light': False},
+    'fiddle leaf fig': {'min': 140, 'max': 220, 'ideal': 'Medium-Bright to Bright', 'is_low_light': False},
+    'peace lily': {'min': 50, 'max': 150, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'areca palm': {'min': 100, 'max': 200, 'ideal': 'Medium to Bright', 'is_low_light': False},
+    'rubber plant': {'min': 120, 'max': 220, 'ideal': 'Medium to Bright', 'is_low_light': False},
+    'spider plant': {'min': 70, 'max': 190, 'ideal': 'Medium to Bright', 'is_low_light': False},
+    'african violet': {'min': 80, 'max': 180, 'ideal': 'Medium Light', 'is_low_light': False},
+    'jade plant': {'min': 130, 'max': 230, 'ideal': 'Medium-Bright to Bright', 'is_low_light': False},
+    'aloe vera': {'min': 140, 'max': 250, 'ideal': 'Bright Light', 'is_low_light': False},
+    'boston fern': {'min': 60, 'max': 140, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'zz plant': {'min': 55, 'max': 200, 'ideal': 'Low to Bright', 'is_low_light': True},
+    'chinese evergreen': {'min': 50, 'max': 140, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'dracaena': {'min': 50, 'max': 180, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'calathea': {'min': 60, 'max': 130, 'ideal': 'Low to Medium', 'is_low_light': True},
+    'orchid': {'min': 90, 'max': 160, 'ideal': 'Medium Light', 'is_low_light': False},
+    'succulents': {'min': 130, 'max': 240, 'ideal': 'Bright Light', 'is_low_light': False},
+    'herbs': {'min': 150, 'max': 240, 'ideal': 'Bright Light', 'is_low_light': False},
+}
+
+# Common plant name aliases for better API matching
+PLANT_ALIASES = {
+    'sanseviera': 'snake plant',
+    'sansevieria': 'snake plant',
+    'sanseveria': 'snake plant',
+    'snake plant sansevieria': 'snake plant',
+    'devil\'s ivy': 'pothos',
+    'celadon pothos': 'pothos',
+    'epipremnum aureum': 'pothos',
+    'swiss cheese plant': 'monstera',
+    'monstera deliciosa': 'monstera',
+    'ficus lyrata': 'fiddle leaf fig',
+    'spathiphyllum wallisii': 'peace lily',
+    'white peace lily': 'peace lily',
+    'dypsis lutescens': 'areca palm',
+    'chrysalidocarpus lutescens': 'areca palm',
+    'ficus elastica': 'rubber plant',
+    'red rubber plant': 'rubber plant',
+    'chlorophytum comosum': 'spider plant',
+    'saintpaulia': 'african violet',
+    'crassula ovata': 'jade plant',
+    'nephrolepis exaltata': 'boston fern',
+    'zamioculcas zamiifolia': 'zz plant',
+    'aglaonema': 'chinese evergreen',
+    'goethals': 'chinese evergreen',
+    'dracaena marginata': 'dracaena',
+    'calathea orbifolia': 'calathea',
+    'phalaenopsis': 'orchid',
+    'cattleya': 'orchid',
+    'dendrobium': 'orchid',
+    'echeveria': 'succulents',
+    'jade': 'jade plant',
+    'aloe': 'aloe vera',
+}
+
+# ============================================
+# LIGHTMETER FRONTEND ROUTES
+# ============================================
+
+# Main LightMeter page
+@app.route('/')
+@app.route('/lightmeter')
+@app.route('/lightmeter.html')
+def lightmeter_index():
+    try:
+        with open('lightmeter.html', 'r', encoding='utf-8') as f:
+            html = f.read()
+        return render_template_string(html)
+    except FileNotFoundError:
+        return jsonify({'error': 'lightmeter.html not found. Make sure the file exists in the backend directory.'}), 404
+    except Exception as e:
+        print(f'[ERROR] Error loading lightmeter.html: {str(e)}')
+        return jsonify({'error': f'Error loading page: {str(e)}'}), 500
+
+# Serve CSS file
+@app.route('/lightmeter.css')
+def lightmeter_css():
+    try:
+        return send_from_directory('.', 'lightmeter.css', mimetype='text/css')
+    except FileNotFoundError:
+        return jsonify({'error': 'lightmeter.css not found'}), 404
+    except Exception as e:
+        print(f'[ERROR] Error loading lightmeter.css: {str(e)}')
+        return jsonify({'error': f'Error loading CSS: {str(e)}'}), 500
+
+# Serve JavaScript file
+@app.route('/lightmeter.js')
+def lightmeter_js():
+    try:
+        return send_from_directory('.', 'lightmeter.js', mimetype='application/javascript')
+    except FileNotFoundError:
+        return jsonify({'error': 'lightmeter.js not found'}), 404
+    except Exception as e:
+        print(f'[ERROR] Error loading lightmeter.js: {str(e)}')
+        return jsonify({'error': f'Error loading JavaScript: {str(e)}'}), 500
+
+# Health check endpoint for frontend
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'service': 'LightMeter Backend',
+        'version': '2.0',
+        'endpoints': [
+            'GET  /                    - Main LightMeter page',
+            'GET  /lightmeter          - LightMeter main route',
+            'GET  /lightmeter.css      - Stylesheet',
+            'GET  /lightmeter.js       - JavaScript module',
+            'POST /analyze             - Analyze image & plant light',
+            'GET  /get-location-by-ip  - Geolocation by IP',
+            'GET  /get-weather-by-coords - Weather by coordinates',
+            'GET  /get-locations       - Location search'
+        ]
+    }), 200
+
+# Extended Plant Database with detailed characteristics for better matching
+PLANT_CHARACTERISTICS = {
+    'snake plant': {
+        'min': 50, 'max': 200, 'ideal': 'Low to Bright',
+        'colors': ['dark green', 'yellow', 'striped', 'variegated'],
+        'pattern': 'vertical stripes',
+        'leaf_shape': 'long pointed'
+    },
+    'monstera': {
+        'min': 80, 'max': 200, 'ideal': 'Medium to Bright',
+        'colors': ['bright green', 'dark green'],
+        'pattern': 'large holes in leaves',
+        'leaf_shape': 'large round'
+    },
+    'pothos': {
+        'min': 60, 'max': 180, 'ideal': 'Low to Medium',
+        'colors': ['light green', 'golden', 'variegated'],
+        'pattern': 'trailing vines',
+        'leaf_shape': 'heart shaped'
+    },
+    'spider plant': {
+        'min': 70, 'max': 190, 'ideal': 'Medium to Bright',
+        'colors': ['green', 'white stripes', 'yellow stripes'],
+        'pattern': 'arching leaves with stripes',
+        'leaf_shape': 'long narrow'
+    },
+    'peace lily': {
+        'min': 50, 'max': 150, 'ideal': 'Low to Medium',
+        'colors': ['dark green', 'pale'],
+        'pattern': 'glossy leaves',
+        'leaf_shape': 'long pointed'
+    },
+    'jade plant': {
+        'min': 130, 'max': 230, 'ideal': 'Medium-Bright to Bright',
+        'colors': ['dark green', 'red', 'burgundy'],
+        'pattern': 'thick succulent leaves',
+        'leaf_shape': 'round fat'
+    },
+    'rubber plant': {
+        'min': 120, 'max': 220, 'ideal': 'Medium to Bright',
+        'colors': ['dark green', 'burgundy', 'glossy'],
+        'pattern': 'large glossy leaves',
+        'leaf_shape': 'large oval'
+    },
+    'orchid': {
+        'min': 90, 'max': 160, 'ideal': 'Medium Light',
+        'colors': ['pink', 'purple', 'white', 'yellow'],
+        'pattern': 'delicate flowers',
+        'leaf_shape': 'thin long'
+    },
+    'aloe vera': {
+        'min': 140, 'max': 250, 'ideal': 'Bright Light',
+        'colors': ['green', 'pale green', 'blue green'],
+        'pattern': 'thick succulent leaves with teeth',
+        'leaf_shape': 'fat pointed'
+    },
+    'succulents': {
+        'min': 140, 'max': 250, 'ideal': 'Bright Light',
+        'colors': ['green', 'red', 'purple', 'blue', 'pink'],
+        'pattern': 'thick fleshy leaves',
+        'leaf_shape': 'round fat compact'
+    }
+}
+# ============================================
+# LIGHTMETER API DOCUMENTATION ROUTE
+# ============================================
+
+@app.route('/api/docs', methods=['GET'])
+def api_documentation():
+    """Comprehensive API documentation for LightMeter"""
+    docs = {
+        'service': 'LightMeter Backend API',
+        'version': '2.0.0',
+        'description': 'AI-powered plant light analysis system with Gemini integration',
+        'base_url': 'http://127.0.0.1:5000',
+        'endpoints': {
+            'Frontend': [
+                {
+                    'route': 'GET /',
+                    'description': 'Main LightMeter analysis page',
+                    'response': 'HTML page'
+                },
+                {
+                    'route': 'GET /lightmeter',
+                    'description': 'LightMeter main route (alias)',
+                    'response': 'HTML page'
+                },
+                {
+                    'route': 'GET /lightmeter.html',
+                    'description': 'LightMeter HTML file (alias)',
+                    'response': 'HTML page'
+                },
+                {
+                    'route': 'GET /lightmeter.css',
+                    'description': 'LightMeter stylesheet',
+                    'response': 'CSS file',
+                    'content_type': 'text/css'
+                },
+                {
+                    'route': 'GET /lightmeter.js',
+                    'description': 'LightMeter JavaScript module',
+                    'response': 'JavaScript file',
+                    'content_type': 'application/javascript'
+                }
+            ],
+            'Analysis APIs': [
+                {
+                    'route': 'POST /analyze',
+                    'description': 'Analyze plant image and light conditions',
+                    'parameters': {
+                        'image': 'File - Plant image (multipart)',
+                        'lat': 'Float - Latitude (optional)',
+                        'lon': 'Float - Longitude (optional)',
+                        'location': 'String - Location name (optional)',
+                        'plant_name': 'String - Plant name for comparison (optional)'
+                    },
+                    'response': {
+                        'average_grayscale': 'Float - Average grayscale value (0-255)',
+                        'detected_light': 'String - Light level (Low/Medium/Bright)',
+                        'location': 'String - Location name',
+                        'weather_intensity': 'Integer - Sunlight intensity %',
+                        'weather_description': 'String - Weather condition',
+                        'temperature': 'Float - Temperature in Celsius',
+                        'humidity': 'Integer - Humidity percentage',
+                        'plant_name': 'String - Detected/provided plant name (if available)',
+                        'plant_auto_detected': 'Boolean - Was plant auto-detected',
+                        'plant_comparison': 'Object - Plant light requirements vs current',
+                        'suggestions': 'Array - Contextual tips',
+                        'smart_suggestions': 'Array - Advanced recommendations',
+                        'warning': 'String - Warning message if light is non-ideal',
+                        'has_warning': 'Boolean - Whether warning exists',
+                        'api_used': 'Boolean - Whether Plant.ID API was used'
+                    },
+                    'example_curl': 'curl -X POST -F "image=@plant.jpg" -F "lat=40.7128" -F "lon=-74.0060" http://127.0.0.1:5000/analyze'
+                },
+                {
+                    'route': 'GET /analyze',
+                    'description': 'Health check for analyze endpoint',
+                    'response': 'JSON message confirming endpoint is running'
+                }
+            ],
+            'Geolocation APIs': [
+                {
+                    'route': 'GET /get-location-by-ip',
+                    'description': 'Get user location from IP address',
+                    'response': {
+                        'lat': 'Float - Latitude',
+                        'lon': 'Float - Longitude',
+                        'city': 'String - City name',
+                        'country': 'String - Country name',
+                        'location': 'String - Formatted location'
+                    }
+                },
+                {
+                    'route': 'GET /get-weather-by-coords',
+                    'description': 'Get weather data for coordinates',
+                    'parameters': {
+                        'lat': 'Float - Latitude (required)',
+                        'lon': 'Float - Longitude (required)'
+                    },
+                    'response': {
+                        'location': 'String - Location name',
+                        'cloud_cover': 'Integer - Cloud coverage %',
+                        'description': 'String - Weather description',
+                        'humidity': 'Integer - Humidity %',
+                        'temperature': 'Float - Temperature in Celsius'
+                    }
+                },
+                {
+                    'route': 'GET /get-locations',
+                    'description': 'Search locations by name',
+                    'parameters': {
+                        'q': 'String - Location search query (min 2 chars)'
+                    },
+                    'response': {
+                        'locations': 'Array of {name, lat, lon}'
+                    }
+                }
+            ],
+            'System': [
+                {
+                    'route': 'GET /api/health',
+                    'description': 'Health check endpoint',
+                    'response': {'status': 'ok', 'endpoints': 'List of all endpoints'}
+                },
+                {
+                    'route': 'GET /api/docs',
+                    'description': 'This API documentation',
+                    'response': 'JSON with full API specification'
+                }
+            ]
+        },
+        'features': [
+            'Plant identification via Plant.ID API',
+            'Fallback local plant detection',
+            'AI-powered light requirements via Gemini API',
+            'Real-time weather analysis',
+            'Geolocation (browser GPS + IP fallback)',
+            'Comprehensive suggestions and warnings',
+            'Auto-detection of plants in images'
+        ],
+        'error_handling': {
+            '400': 'Bad request - missing required parameters',
+            '404': 'Resource not found',
+            '500': 'Server error - check logs for details'
+        }
+    }
+    return jsonify(docs)
+
+# ============================================
+# LIGHTMETER API ENDPOINTS
+# ============================================
+def identify_plant_from_image_api(img_array):
+    """
+    Identify plant species using Plant.ID API - AI-powered plant recognition
+    Returns the most likely plant species and confidence score
+    """
+    try:
+        print('[DEBUG] ====== Starting Plant.ID API Identification ======')
+        
+        # Convert numpy array to PIL Image for encoding
+        from PIL import Image as PILImage
+        import io
+        import base64
+        
+        pil_img = PILImage.fromarray(img_array.astype('uint8'))
+        
+        # Convert to bytes
+        img_byte_arr = io.BytesIO()
+        pil_img.save(img_byte_arr, format='JPEG')
+        img_byte_arr.seek(0)
+        
+        # Encode as base64
+        img_base64 = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+        
+        # Prepare request to Plant.ID API
+        payload = {
+            'images': [img_base64],
+            'similar_images': True,
+            'classification_level': 'species'  # Plant.ID v3 uses classification_level, not details
+        }
+        
+        headers = {
+            'Api-Key': PLANTID_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        
+        print(f'[DEBUG] Sending request to Plant.ID API: {PLANTID_API_URL}/identification')
+        response = requests.post(f'{PLANTID_API_URL}/identification', json=payload, headers=headers, timeout=30)
+        
+        print(f'[DEBUG] Plant.ID API Response Status: {response.status_code}')
+        
+        # Plant.ID v3 returns 200 or 201 for success
+        if response.status_code in [200, 201]:
+            data = response.json()
+            # Plant.ID v3 wraps results in 'result' key
+            if 'result' in data:
+                data = data['result']
+            
+            print(f'[DEBUG] Plant.ID API Response: {data}')
+            
+            # Extract plant results - API uses 'classification' -> 'suggestions'
+            suggestions = None
+            if 'classification' in data and 'suggestions' in data['classification']:
+                suggestions = data['classification']['suggestions']
+            elif 'results' in data:  # Fallback for different API versions
+                suggestions = data['results']
+            
+            if suggestions and len(suggestions) > 0:
+                top_result = suggestions[0]
+                
+                # Handle different field name formats
+                plant_name = top_result.get('name', '') or top_result.get('plant_name', '')
+                plant_name = plant_name.lower().strip()
+                
+                confidence = top_result.get('probability', 0)
+                
+                # Extract common names
+                common_names = []
+                if 'common_names' in top_result and isinstance(top_result['common_names'], list):
+                    common_names = top_result['common_names']
+                elif 'details' in top_result and isinstance(top_result['details'], dict):
+                    common_names = top_result['details'].get('common_names', [])
+                
+                print(f'[DEBUG] ✓ Plant identified: {plant_name} (Confidence: {confidence:.0%})')
+                print(f'[DEBUG] Common names: {common_names}')
+                
+                return {
+                    'plant_name': plant_name,
+                    'confidence': confidence,
+                    'common_names': common_names,
+                    'success': True
+                }
+            else:
+                print(f'[DEBUG] No plant results found in API response')
+                return {'success': False, 'error': 'No plant detected'}
+        else:
+            print(f'[DEBUG] Plant.ID API Error: {response.status_code} - {response.text}')
+            return {'success': False, 'error': f'API error: {response.status_code}'}
+    
+    except requests.exceptions.Timeout:
+        print('[ERROR] Plant.ID API request timeout')
+        return {'success': False, 'error': 'API request timeout'}
+    except Exception as e:
+        print(f'[ERROR] Plant.ID API error: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': str(e)}
+
+# Function to detect plant species from image using advanced analysis
+def detect_plant_from_image(img_array):
+    """
+    Detect plant species from image using color analysis and pattern recognition
+    """
+    try:
+        print('[DEBUG] ====== Starting Advanced Plant Detection ======')
+        
+        # Convert to PIL Image for analysis
+        from PIL import Image as PILImage
+        pil_img = PILImage.fromarray(img_array.astype('uint8'))
+        
+        # Get image statistics
+        img_hsv = pil_img.convert('HSV')
+        hsv_array = np.array(img_hsv)
+        
+        # Extract dominant colors
+        h_values = hsv_array[:,:,0]
+        s_values = hsv_array[:,:,1]
+        v_values = hsv_array[:,:,2]
+        
+        avg_hue = np.mean(h_values)
+        avg_sat = np.mean(s_values)
+        avg_val = np.mean(v_values)
+        
+        # Calculate color variance
+        hue_variance = np.std(h_values)
+        sat_variance = np.std(s_values)
+        
+        print(f'[DEBUG] Image Analysis:')
+        print(f'  Hue: {avg_hue:.1f} (±{hue_variance:.1f})')
+        print(f'  Saturation: {avg_sat:.1f} (±{sat_variance:.1f})')
+        print(f'  Value: {avg_val:.1f}')
+        
+        # Plant detection logic with multiple factors
+        scores = {}
+        
+        # Check for specific color patterns
+        # Green colors (hue 60-90)
+        if 40 < avg_hue < 100 and avg_sat > 30:
+            print(f'[DEBUG] Detected green plant')
+            if avg_val > 160:  # Bright green
+                scores['monstera'] = 0.85
+                scores['spider plant'] = 0.80
+                scores['pothos'] = 0.70
+            elif avg_val > 130:  # Medium green
+                scores['pothos'] = 0.85
+                scores['monstera'] = 0.75
+                scores['snake plant'] = 0.65
+            else:  # Dark green
+                scores['peace lily'] = 0.80
+                scores['snake plant'] = 0.78
+                scores['rubber plant'] = 0.70
+        
+        # Red/Burgundy tones (hue 0-30, 270-360)
+        elif (avg_hue < 30 or avg_hue > 330) and avg_sat > 20:
+            print(f'[DEBUG] Detected red/burgundy plant')
+            if avg_val > 140:
+                scores['rubber plant'] = 0.85
+            else:
+                scores['jade plant'] = 0.85
+            scores['succulents'] = 0.75
+        
+        # Yellow-green variegated (hue 50-60)
+        elif 50 < avg_hue < 65:
+            print(f'[DEBUG] Detected yellow-green variegated plant')
+            scores['spider plant'] = 0.90
+            scores['pothos'] = 0.75
+        
+        # Purple/Pink flowers (hue 270-360)
+        elif 240 < avg_hue < 360 and avg_val > 100:
+            print(f'[DEBUG] Detected purple/pink flowering plant')
+            scores['orchid'] = 0.90
+            scores['succulents'] = 0.70
+        
+        # Blue succulents
+        elif 180 < avg_hue < 240:
+            print(f'[DEBUG] Detected blue/cyan plant')
+            scores['aloe vera'] = 0.85
+            scores['succulents'] = 0.88
+        
+        # Low saturation - pale plants
+        elif avg_sat < 40 and avg_val > 100:
+            print(f'[DEBUG] Detected pale low-saturation plant')
+            scores['peace lily'] = 0.75
+            scores['snake plant'] = 0.70
+        
+        # High color variety (variegated)
+        if hue_variance > 25:
+            print(f'[DEBUG] Detected variegated plant (high color variation)')
+            scores['spider plant'] = min(1.0, scores.get('spider plant', 0.5) + 0.15)
+            scores['pothos'] = min(1.0, scores.get('pothos', 0.5) + 0.10)
+        
+        # Default scoring if no patterns match
+        if not scores:
+            print(f'[DEBUG] No pattern matched, using defaults')
+            scores['snake plant'] = 0.60
+            scores['monstera'] = 0.55
+            scores['pothos'] = 0.50
+        
+        # Get top match
+        if scores:
+            top_plant = max(scores, key=scores.get)
+            confidence = scores[top_plant]
+            print(f'[DEBUG] ✓ Top matches:')
+            for plant, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:3]:
+                print(f'  {plant}: {score:.0%}')
+            print(f'[DEBUG] ✓ Final detection: {top_plant} (confidence: {confidence:.0%})')
+            return top_plant
+        
+    except Exception as e:
+        print(f'[ERROR] Plant detection error: {str(e)}')
+        import traceback
+        traceback.print_exc()
+    
+    return 'plant'  # Default fallback
+
+# Function to get location suggestions
+@app.route('/get-locations', methods=['GET'])
+def get_locations():
+    """Get location suggestions based on user input"""
+    query = request.args.get('q', '')
+    if not query or len(query) < 2:
+        return jsonify({'locations': []})
+    
+    try:
+        # Use OpenWeather Geo API to get location suggestions
+        url = f"https://api.openweathermap.org/geo/1.0/direct?q={query}&limit=5&appid={OPENWEATHER_API_KEY}"
+        print(f"[DEBUG] Fetching locations for: {query} - URL: {url}")
+        response = requests.get(url, timeout=5)
+        print(f"[DEBUG] Response status: {response.status_code}")
+        data = response.json()
+        print(f"[DEBUG] Response data length: {len(data) if data else 'None'}")
+        
+        if not data or len(data) == 0:
+            print(f"[DEBUG] No locations found for query: {query}")
+            return jsonify({'locations': []})
+        
+        locations = []
+        for item in data:
+            location_name = f"{item['name']}"
+            if 'state' in item:
+                location_name += f", {item['state']}"
+            location_name += f", {item['country']}"
+            locations.append({
+                'name': location_name,
+                'lat': item['lat'],
+                'lon': item['lon']
+            })
+        
+        print(f"[DEBUG] Found {len(locations)} locations: {[l['name'] for l in locations]}")
+        return jsonify({'locations': locations})
+    except Exception as e:
+        print(f"[ERROR] Error fetching locations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'locations': []})
+
+# Function to fetch weather data by coordinates
+def get_weather_by_coords(lat, lon):
+    """Fetch weather data from OpenWeather API using coordinates"""
+    try:
+        print(f"[DEBUG] Fetching weather for coordinates: {lat}, {lon}")
+        
+        # Get current weather using coordinates
+        weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric"
+        print(f"[DEBUG] Weather URL: {weather_url}")
+        
+        weather_response = requests.get(weather_url, timeout=5)
+        print(f"[DEBUG] Weather response status: {weather_response.status_code}")
+        
+        weather_data = weather_response.json()
+        print(f"[DEBUG] Full weather response: {weather_data}")
+        
+        if 'clouds' not in weather_data or 'weather' not in weather_data:
+            print(f"[DEBUG] Missing required weather fields")
+            return None
+        
+        # Reverse geocode to get location name
+        location_name = weather_data.get('name', 'Unknown Location')
+        if 'sys' in weather_data and 'country' in weather_data['sys']:
+            location_name += f", {weather_data['sys']['country']}"
+        
+        result = {
+            'location': location_name,
+            'cloud_cover': weather_data['clouds'].get('all', 50),
+            'description': weather_data['weather'][0].get('description', 'Unknown'),
+            'humidity': weather_data['main'].get('humidity', 50),
+            'temperature': weather_data['main'].get('temp', 20)
+        }
+        print(f"[DEBUG] Weather data result: {result}")
+        return result
+    except Exception as e:
+        print(f"[ERROR] Error fetching weather by coordinates: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+# Endpoint to get weather by coordinates
+@app.route('/get-weather-by-coords', methods=['GET'])
+def get_weather_by_coords_endpoint():
+    """Get weather data by latitude and longitude"""
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+    
+    if not lat or not lon:
+        return jsonify({'error': 'Missing coordinates'}), 400
+    
+    try:
+        lat = float(lat)
+        lon = float(lon)
+        weather_data = get_weather_by_coords(lat, lon)
+        
+        if weather_data:
+            return jsonify(weather_data)
+        else:
+            return jsonify({'error': 'Unable to fetch weather'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to get location by IP address
+@app.route('/get-location-by-ip', methods=['GET'])
+def get_location_by_ip():
+    """Get location by user's IP address"""
+    try:
+        print("[DEBUG] ====== Starting IP Geolocation ======")
+        
+        # Try primary IP geolocation API (ip-api.com)
+        ip_url = "https://ip-api.com/json/?fields=status,country,city,lat,lon,countryCode,isp"
+        print(f"[DEBUG] Primary API: {ip_url}")
+        
+        response = requests.get(ip_url, timeout=10)
+        print(f"[DEBUG] Response status code: {response.status_code}")
+        
+        data = response.json()
+        print(f"[DEBUG] Primary API full response: {data}")
+        
+        if data.get('status') == 'success' and data.get('city') and data.get('lat') and data.get('lon'):
+            location_data = {
+                'lat': data.get('lat'),
+                'lon': data.get('lon'),
+                'city': data.get('city', 'Unknown'),
+                'country': data.get('country', 'Unknown'),
+                'location': f"{data.get('city', 'Unknown')}, {data.get('country', 'Unknown')}"
+            }
+            print(f"[DEBUG] ✓ Primary API Success: {location_data}")
+            return jsonify(location_data)
+        else:
+            print(f"[DEBUG] Primary API returned incomplete data, trying fallback")
+            raise Exception("Incomplete data from primary API")
+    
+    except Exception as e:
+        print(f"[ERROR] Primary API failed: {str(e)}")
+        print("[DEBUG] Trying Fallback API 1: ipapi.co")
+        
+        try:
+            # Fallback to alternative API
+            fallback_url = "https://ipapi.co/json/"
+            print(f"[DEBUG] Fallback URL: {fallback_url}")
+            response = requests.get(fallback_url, timeout=10)
+            print(f"[DEBUG] Fallback response status: {response.status_code}")
+            
+            data = response.json()
+            print(f"[DEBUG] Fallback API response: {data}")
+            
+            if data.get('latitude') and data.get('longitude') and data.get('city'):
+                location_data = {
+                    'lat': data.get('latitude'),
+                    'lon': data.get('longitude'),
+                    'city': data.get('city', 'Unknown'),
+                    'country': data.get('country_name', 'Unknown'),
+                    'location': f"{data.get('city', 'Unknown')}, {data.get('country_name', 'Unknown')}"
+                }
+                print(f"[DEBUG] ✓ Fallback API 1 Success: {location_data}")
+                return jsonify(location_data)
+            else:
+                raise Exception("Incomplete data from fallback 1")
+        
+        except Exception as e2:
+            print(f"[ERROR] Fallback API 1 also failed: {str(e2)}")
+            print("[DEBUG] Trying Fallback API 2: geoip-db.com")
+            
+            try:
+                # Fallback to second alternative
+                fallback_url2 = "https://geoip-db.com/json/"
+                print(f"[DEBUG] Fallback 2 URL: {fallback_url2}")
+                response = requests.get(fallback_url2, timeout=10)
+                print(f"[DEBUG] Fallback 2 response status: {response.status_code}")
+                
+                data = response.json()
+                print(f"[DEBUG] Fallback 2 API response: {data}")
+                
+                if data.get('latitude') and data.get('longitude') and data.get('city'):
+                    location_data = {
+                        'lat': data.get('latitude'),
+                        'lon': data.get('longitude'),
+                        'city': data.get('city', 'Unknown'),
+                        'country': data.get('country_name', 'Unknown'),
+                        'location': f"{data.get('city', 'Unknown')}, {data.get('country_name', 'Unknown')}"
+                    }
+                    print(f"[DEBUG] ✓ Fallback API 2 Success: {location_data}")
+                    return jsonify(location_data)
+                else:
+                    raise Exception("Incomplete data from fallback 2")
+            
+            except Exception as e3:
+                print(f"[ERROR] Fallback API 2 also failed: {str(e3)}")
+                print("[DEBUG] All APIs failed, returning default location")
+                
+                # Return default location
+                default_location = {
+                    'lat': 40.7128,
+                    'lon': -74.0060,
+                    'city': 'New York',
+                    'country': 'United States',
+                    'location': 'New York, United States (Default - All IP APIs Failed)'
+                }
+                print(f"[DEBUG] ✗ Returning default: {default_location}")
+                print("[DEBUG] ====== IP Geolocation Complete ======")
+                return jsonify(default_location)
+
+
+# Function to fetch weather data
+def get_weather_data(location):
+    """Fetch weather data from OpenWeather API"""
+    try:
+        # Get coordinates for location
+        geo_url = f"https://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={OPENWEATHER_API_KEY}"
+        print(f"[DEBUG] Fetching weather for location: {location}")
+        geo_response = requests.get(geo_url, timeout=5)
+        geo_data = geo_response.json()
+        
+        if not geo_data or len(geo_data) == 0:
+            print(f"[DEBUG] No geo data found for: {location}")
+            return None
+        
+        lat = geo_data[0]['lat']
+        lon = geo_data[0]['lon']
+        print(f"[DEBUG] Location coordinates: {lat}, {lon}")
+        
+        return get_weather_by_coords(lat, lon)
+    except Exception as e:
+        print(f"[ERROR] Error fetching weather data: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+# Function to estimate sunlight intensity from weather
+def estimate_sunlight_intensity(weather_data):
+    """Estimate sunlight intensity (0-100) based on weather conditions"""
+    if not weather_data:
+        return 50  # Default medium
+    
+    cloud_cover = weather_data['cloud_cover']
+    
+    # Estimate based on cloud cover (0% cloud = 100% intensity, 100% cloud = 10% intensity)
+    intensity = 100 - cloud_cover
+    return max(10, min(100, intensity))
+
+# Function to generate suggestions
+def generate_suggestions(detected_light_level, weather_intensity, location):
+    """Generate contextual suggestions based on light level and weather"""
+    suggestions = {
+        'low_light': [
+            "Move the plant closer to a window.",
+            "Place the plant near an east-facing window for morning sunlight.",
+            "Move the plant to a balcony or terrace.",
+            "Avoid placing the plant in dark corners of the room.",
+            "Increase exposure to natural daylight.",
+            "Consider using an artificial LED grow light.",
+            "Ensure the plant receives at least 4–6 hours of sunlight daily."
+        ],
+        'high_light': [
+            "Move the plant to an area with indirect sunlight.",
+            "Place the plant behind a curtain or shade.",
+            "Move the plant away from direct afternoon sun.",
+            "Place the plant under partial shade.",
+            "Use a sheer curtain to filter intense sunlight.",
+            "Consider moving the plant indoors during peak sun hours."
+        ],
+        'ideal_light': [
+            "The lighting condition is ideal for this plant.",
+            "Keep the plant in the current location.",
+            "Maintain the current care routine.",
+            "Monitor the plant regularly for optimal growth.",
+            "This location provides perfect natural light balance."
+        ]
+    }
+    
+    warnings = {
+        'low_light': "Low light conditions may slow plant growth and cause weak or yellowing leaves.",
+        'high_light': "Excessive sunlight may cause leaf burn or dehydration.",
+        'ideal_light': ""  # No warning for ideal light conditions
+    }
+    
+    smart_suggestions = {
+        'low_light': [
+            f"Watering: Water less frequently in low light (every 10-14 days)",
+            "Pruning: Remove dead leaves to encourage new growth toward light",
+            f"Humidity: Increase humidity to {weather_intensity + 20}% to compensate for low light",
+            "Growth Rate: Expect slower growth - this is normal in low light conditions",
+            "Winter Care: Move plant to brightest available location during winter months"
+        ],
+        'high_light': [
+            f"Watering: Water more frequently to prevent soil dryness (every 3-5 days)",
+            "Leaf Protection: Wipe leaves monthly to remove dust and maximize photosynthesis",
+            f"Temperature: Keep plant cool - aim for 18-24°C with air circulation",
+            "Pest Check: High light attracts more pests - inspect weekly",
+            "Fertilizing: Feed every 2 weeks during growing season for strong growth"
+        ],
+        'ideal_light': [
+            "Consistency: Maintain this light level - it's perfect for photosynthesis",
+            "Rotation: Rotate plant 90° weekly for evenly distributed growth",
+            f"Seasonal Adjustment: Light may decrease in winter - be prepared to relocate if needed",
+            "Blooming: Ideal light promotes flowering - expect blooms in 4-8 weeks",
+            "Fertilizing Schedule: Feed bi-weekly to support abundant growth"
+        ]
+    }
+    
+    category = 'ideal_light'
+    if detected_light_level == 'Low Light':
+        category = 'low_light'
+    elif detected_light_level == 'Bright Light':
+        category = 'high_light'
+    
+    # Select 2-3 random suggestions (non-repeating)
+    selected_suggestions = random.sample(suggestions[category], min(3, len(suggestions[category])))
+    selected_smart = random.sample(smart_suggestions[category], min(3, len(smart_suggestions[category])))
+    
+    return {
+        'category': category,
+        'suggestions': selected_suggestions,
+        'warning': warnings[category],
+        'smart_suggestions': selected_smart,
+        'weather_intensity': weather_intensity,
+        'location': location
+    }
+
+# Function to find plant and get ideal light requirements from Gemini API
+def get_plant_info_from_gemini(plant_name):
+    """Query Gemini API to get ideal light requirements for a plant"""
+    if not plant_name:
+        return None
+    
+    # Check if Gemini API is properly configured
+    if not GEMINI_API_KEY or GEMINI_API_KEY == 'YOUR_GEMINI_API_KEY_HERE':
+        print(f'[DEBUG] Gemini API not configured, skipping for: {plant_name}')
+        return None
+    
+    try:
+        print(f'[DEBUG] ====== Querying Gemini for plant info: {plant_name} ======')
+        
+        # Create the prompt for Gemini
+        prompt = f"""
+        Provide the optimal light conditions for {plant_name} in the following JSON format only:
+        {{
+            "plant_name": "common plant name",
+            "min": minimum grayscale value (0-255, where 0 is dark, 255 is bright),
+            "max": maximum grayscale value (0-255),
+            "ideal": description of ideal light (e.g., "Low to Medium", "Medium to Bright"),
+            "is_low_light": boolean (true if plant tolerates low light),
+            "reasoning": brief explanation of the light requirements
+        }}
+        
+        Guidelines:
+        - Grayscale 0-70: Low Light
+        - Grayscale 70-160: Medium Light
+        - Grayscale 160-255: Bright Light
+        
+        Respond ONLY with valid JSON, no additional text.
+        """
+        
+        # Query Gemini API (using gemini-2.5-flash)
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(prompt)
+        
+        # Parse the response
+        response_text = response.text.strip()
+        print(f'[DEBUG] Gemini response: {response_text}')
+        
+        # Extract JSON from response (in case there's extra text)
+        json_start = response_text.find('{')
+        json_end = response_text.rfind('}') + 1
+        if json_start != -1 and json_end > json_start:
+            json_str = response_text[json_start:json_end]
+            plant_data = json.loads(json_str)
+            
+            print(f'[DEBUG] ✓ Gemini returned: {plant_data}')
+            
+            return {
+                'name': plant_name,
+                'data': {
+                    'min': plant_data.get('min', 50),
+                    'max': plant_data.get('max', 200),
+                    'ideal': plant_data.get('ideal', 'Unknown'),
+                    'is_low_light': plant_data.get('is_low_light', False)
+                },
+                'reasoning': plant_data.get('reasoning', '')
+            }
+        else:
+            print(f'[ERROR] Could not parse JSON from Gemini response')
+            return None
+            
+    except Exception as e:
+        print(f'[WARNING] Gemini API error: {str(e)}')
+        print(f'[DEBUG] Falling back to local database for: {plant_name}')
+        return None
+
+# Function to find plant and get ideal light requirements
+def get_plant_info(plant_name):
+    """Find plant in database and return ideal light requirements using Gemini API (with fallback)"""
+    if not plant_name:
+        return None
+    
+    plant_name_lower = plant_name.lower().strip()
+    
+    # Clean up plant name - remove common qualifiers
+    cleaned_name = plant_name_lower
+    qualifiers = ['common ', 'wild ', 'variegated ', 'striped ', 'golden ', 'silver ', 'giant ', 'dwarf ']
+    for qualifier in qualifiers:
+        if cleaned_name.startswith(qualifier):
+            cleaned_name = cleaned_name.replace(qualifier, '', 1).strip()
+    
+    # Try Gemini API first (only if configured)
+    if GEMINI_API_KEY and GEMINI_API_KEY != 'YOUR_GEMINI_API_KEY_HERE':
+        gemini_result = get_plant_info_from_gemini(cleaned_name or plant_name)
+        if gemini_result:
+            return gemini_result
+    
+    # Fallback to local database
+    print(f'[DEBUG] Falling back to local database for: {plant_name}')
+    
+    # Check aliases first
+    if cleaned_name in PLANT_ALIASES:
+        matched_name = PLANT_ALIASES[cleaned_name]
+        print(f'[DEBUG] Alias matched "{plant_name}" to "{matched_name}"')
+        return {
+            'name': plant_name,
+            'data': PLANT_DATABASE[matched_name]
+        }
+    
+    # Direct match on cleaned name
+    if cleaned_name in PLANT_DATABASE:
+        return {
+            'name': plant_name,
+            'data': PLANT_DATABASE[cleaned_name]
+        }
+    
+    # Partial match (handles plurals and minor variations)
+    for db_plant, data in PLANT_DATABASE.items():
+        if db_plant in cleaned_name or cleaned_name in db_plant:
+            return {
+                'name': plant_name,
+                'data': data
+            }
+    
+    # Fuzzy matching - find closest match using sequence matching
+    best_match = None
+    best_ratio = 0.6  # Minimum similarity threshold
+    
+    for db_plant in PLANT_DATABASE.keys():
+        ratio = SequenceMatcher(None, cleaned_name, db_plant).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_match = db_plant
+    
+    if best_match:
+        print(f'[DEBUG] Fuzzy matched "{plant_name}" to "{best_match}" (similarity: {best_ratio:.0%})')
+        return {
+            'name': plant_name,
+            'data': PLANT_DATABASE[best_match]
+        }
+    
+    # No match found
+    print(f'[DEBUG] No match found for plant: {plant_name}')
+    return None
+
+# Function to generate plant-specific comparison
+def compare_plant_light(current_grayscale, plant_info):
+    """Compare current light with plant's ideal requirements"""
+    if not plant_info:
+        return None
+    
+    plant_data = plant_info['data']
+    min_val = plant_data['min']
+    max_val = plant_data['max']
+    
+    # Determine match status
+    if current_grayscale < min_val:
+        status = '🔴 Too Dark'
+        advice = f"Your plant needs more light. Current: {current_grayscale:.1f}, Minimum needed: {min_val}"
+    elif current_grayscale > max_val:
+        status = '🔴 Too Bright'
+        advice = f"Light level is excessive. Current: {current_grayscale:.1f}, Maximum: {max_val}"
+    else:
+        status = '🟢 Perfect Light'
+        advice = f"Light conditions are ideal for {plant_info['name']}!"
+    
+    return {
+        'status': status,
+        'current': current_grayscale,
+        'min': min_val,
+        'max': max_val,
+        'advice': advice,
+        'range': f"{min_val}-{max_val}"
+    }
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    """
+    Analyze plant image for light conditions and plant identification
+    Integrated with Gemini API for dynamic light requirements
+    """
+    try:
+        print('\n' + '='*80)
+        print('[DEBUG] ====== LIGHTMETER ANALYSIS REQUEST ======')
+        print('='*80)
+        
+        # Validate image upload
+        if 'image' not in request.files:
+            print('[ERROR] No image file in request')
+            return jsonify({'error': 'No image uploaded'}), 400
+
+        image_file = request.files['image']
+        if not image_file or image_file.filename == '':
+            print('[ERROR] Empty image file')
+            return jsonify({'error': 'No image file selected'}), 400
+
+        # Get form parameters
+        plant_name = request.form.get('plant_name', '')
+        user_id = request.form.get('user_id')
+        notes = request.form.get('notes', '')
+
+        # Load image as bytes
+        img_bytes = image_file.read()
+
+        # Import plant analysis logic
+        from plant_growth_tracker import PlantGrowthTracker
+        tracker = PlantGrowthTracker()
+        # Analyze plant (returns GrowthReport)
+        report = tracker.analyze(img_bytes, plant_name=plant_name)
+
+        # Build frontend-friendly response
+        def build_analysis_response(report):
+            # Health
+            health = {
+                'score': report.measurements.health_score if report.measurements else 0.0,
+                'status': report.metrics_interpretation.get('health_status', 'N/A') if report.metrics_interpretation else 'N/A',
+                'green_percentage': report.measurements.greenness_index if report.measurements else 0.0,
+                'yellowing_detected': report.measurements.advanced_metrics.get('yellowing', 0.0) if report.measurements and report.measurements.advanced_metrics else 0.0
+            }
+            # Leaf metrics
+            leaf_metrics = {
+                'estimated_leaf_count': report.measurements.leaf_count_estimate if report.measurements else None,
+                'leaf_density': report.measurements.advanced_metrics.get('leaf_density', 'N/A') if report.measurements and report.measurements.advanced_metrics else 'N/A'
+            }
+            # Measurements
+            measurements = {
+                'height_cm': report.measurements.height_cm if report.measurements else None,
+                'width_cm': report.measurements.width_cm if report.measurements else None,
+                'area_cm2': report.measurements.area_cm2 if report.measurements else None
+            }
+            # Timeline/diary
+            timeline = [
+                {
+                    'timestamp': entry.get('timestamp'),
+                    'health_score': entry.get('health_score'),
+                    'estimated_leaf_count': entry.get('leaf_count_estimate'),
+                    'height_px': entry.get('height_px'),
+                    'width_px': entry.get('width_px'),
+                    'area_px': entry.get('area_px'),
+                    'notes': entry.get('notes')
+                }
+                for entry in (report.plant_diary or [])
+            ]
+            return {
+                'health': health,
+                'leaf_metrics': leaf_metrics,
+                'measurements': measurements,
+                'recommendations': report.care_recommendations,
+                'issues': report.issues_detected,
+                'growth_trend': report.growth_trend_analysis,
+                'timeline': timeline,
+                'timestamp': report.timestamp,
+                # Gemini/AI fields
+                'ai_summary': report.ai_summary,
+                'ai_recommendations': report.ai_recommendations,
+                'ai_growth_forecast': report.ai_growth_forecast,
+                'ai_issues_detected': report.ai_issues_detected,
+                'ai_trend_analysis': report.ai_trend_analysis,
+                'ai_shape_analysis': report.ai_shape_analysis,
+                'ai_metrics_interpretation': report.ai_metrics_interpretation,
+                'species_parameters': report.species_parameters
+            }
+
+        return jsonify({
+            analysis_response = build_analysis_response(report)
+            print("[DEBUG] Analysis API response:", analysis_response)
+            return jsonify({
+                'success': True,
+                'data': {
+                    'analysis': analysis_response
+                }
+            })
+    
+    except Exception as e:
+        print(f'[ERROR] Unexpected error in analyze endpoint: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+
+# Simple GET endpoint for testing
+@app.route('/analyze', methods=['GET'])
+def analyze_get():
+    return jsonify({"message": "LightMeter backend is running. Use POST to analyze plant data."})
+
+if __name__ == '__main__':
+    print("\n" + "="*80)
+    print(" "*20 + "LIGHTMETER BACKEND SERVER")
+    print("="*80)
+    print("\n✓ Server Configuration:")
+    print(f"  - Flask app initialized with CORS enabled")
+    print(f"  - OpenWeather API configured")
+    print(f"  - Plant.ID API configured")
+    print(f"  - Gemini API configured (dynamic light analysis)")
+    print(f"\n✓ Frontend Assets Linked:")
+    print(f"  - GET  /                     → lightmeter.html")
+    print(f"  - GET  /lightmeter.css       → stylesheet")
+    print(f"  - GET  /lightmeter.js        → JavaScript module")
+    print(f"\n✓ Analysis Endpoints:")
+    print(f"  - POST /analyze              → Image analysis & identification")
+    print(f"  - GET  /analyze              → Health check")
+    print(f"\n✓ Geolocation Endpoints:")
+    print(f"  - GET  /get-location-by-ip   → User location from IP")
+    print(f"  - GET  /get-weather-by-coords → Weather data")
+    print(f"  - GET  /get-locations        → Location search")
+    print(f"\n✓ System Endpoints:")
+    print(f"  - GET  /api/health           → API health status")
+    print(f"  - GET  /api/docs             → API documentation")
+    print(f"\n✓ Plant Analysis Features:")
+    print(f"  - Plant identification (Plant.ID API)")
+    print(f"  - Local plant detection (fallback)")
+    print(f"  - AI-powered light requirements (Gemini API)")
+    print(f"  - Real-time weather analysis")
+    print(f"  - Automatic suggestions & warnings")
+    print(f"\n" + "="*80)
+    print("\n🚀 Starting LightMeter Backend Server...")
+    print("📍 Available at: http://127.0.0.1:5000")
+    print("📚 API Documentation: http://127.0.0.1:5000/api/docs")
+    print("💡 Analyze Page: http://127.0.0.1:5000/lightmeter")
+    print("\n" + "="*80 + "\n")
+    
+    app.run(debug=True)

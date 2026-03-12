@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Place Order | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: rgba(255,255,255,0.95) !important;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 0.8rem 0;
+    }
+    .navbar-brand {
+      font-weight: 700; font-size: 1.3rem; color: #2e7d32 !important;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .navbar-brand::before { content: "🌿"; font-size: 1.5rem; }
+    .nav-link { color: #555 !important; font-weight: 500; font-size: 0.95rem; transition: color 0.3s; margin: 0 6px; }
+    .nav-link:hover { color: #2e7d32 !important; }
+
+    .page-header {
+      text-align: center; margin: 2rem 0 1.5rem;
+      animation: fadeInDown 0.6s ease-out;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .page-header h2 { color: #2e7d32; font-weight: 700; font-size: 2rem; margin-bottom: 0.3rem; }
+    .page-header p { color: #666; font-size: 0.95rem; }
+
+    .nursery-info-banner {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      color: white; padding: 20px; border-radius: 16px;
+      margin-bottom: 25px; box-shadow: 0 4px 20px rgba(46,125,50,0.2);
+    }
+    .nursery-info-banner h4 { margin: 0 0 5px 0; font-weight: 700; }
+    .nursery-info-banner p { margin: 0; opacity: 0.9; font-size: 0.95rem; }
+
+    /* ===== CATEGORY TABS ===== */
+    .category-tabs {
+      display: flex; gap: 12px; margin-bottom: 25px;
+      background: white; padding: 8px; border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(46,125,50,0.1);
+    }
+    .cat-tab {
+      flex: 1; padding: 12px 10px; border: none; border-radius: 12px;
+      font-weight: 700; font-size: 0.9rem; cursor: pointer;
+      transition: all 0.3s ease; background: transparent; color: #888;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .cat-tab .tab-icon { font-size: 1.4rem; }
+    .cat-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; }
+    .cat-tab .tab-count { font-size: 0.72rem; font-weight: 500; opacity: 0.7; }
+    .cat-tab.active {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      color: white; box-shadow: 0 4px 15px rgba(46,125,50,0.35);
+      transform: translateY(-1px);
+    }
+    .cat-tab.active .tab-count { opacity: 0.85; }
+    .cat-tab:not(.active):hover { background: #E8F5E9; color: #2e7d32; }
+
+    /* ===== SEARCH & FILTER ===== */
+    .search-bar {
+      position: relative; margin-bottom: 20px;
+    }
+    .search-bar input {
+      width: 100%; padding: 12px 16px 12px 44px;
+      border: 2px solid #E0E0E0; border-radius: 12px; font-size: 0.95rem;
+      transition: border-color 0.3s; background: white;
+    }
+    .search-bar input:focus { outline: none; border-color: #2e7d32; }
+    .search-bar .search-icon {
+      position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+      color: #888; font-size: 1rem;
+    }
+
+    /* ===== PRODUCTS GRID ===== */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px; margin-bottom: 25px;
+    }
+
+    .product-card {
+      background: white; border-radius: 16px; padding: 18px;
+      box-shadow: 0 4px 20px rgba(46,125,50,0.08);
+      transition: all 0.3s ease; border: 2px solid transparent;
+      animation: fadeInUp 0.4s ease-out; animation-fill-mode: both;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(46,125,50,0.15);
+      border-color: #2e7d32;
+    }
+
+    .product-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .product-emoji {
+      width: 64px; height: 64px; border-radius: 12px;
+      background: #E8F5E9; display: flex; align-items: center;
+      justify-content: center; font-size: 2rem; flex-shrink: 0;
+      border: 2px solid rgba(46,125,50,0.2);
+      overflow: hidden;
+    }
+    .product-emoji img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
+    }
+    .product-emoji.emoji-only { font-size: 2rem; }
+    .product-info { flex: 1; min-width: 0; }
+    .product-info h5 {
+      color: #2e7d32; font-weight: 700; font-size: 0.95rem;
+      margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .product-price { color: #2e7d32; font-weight: 700; font-size: 1.15rem; margin-bottom: 4px; }
+    .product-badge {
+      display: inline-block; background: #E8F5E9; color: #2e7d32;
+      padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;
+    }
+
+    .quantity-controls {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-top: 12px;
+    }
+    .qty-group { display: flex; align-items: center; gap: 6px; }
+    .qty-group label { color: #666; font-weight: 600; font-size: 0.85rem; margin: 0; }
+    .quantity-input {
+      width: 60px; padding: 7px 8px; border: 2px solid #E0E0E0;
+      border-radius: 8px; font-size: 0.9rem; text-align: center; transition: border-color 0.3s;
+    }
+    .quantity-input:focus { outline: none; border-color: #2e7d32; }
+    .btn-add-cart {
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white; border: none; padding: 7px 14px; border-radius: 18px;
+      font-weight: 600; font-size: 0.8rem; transition: all 0.2s; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(46,125,50,0.2); white-space: nowrap;
+    }
+    .btn-add-cart:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(46,125,50,0.3); }
+    .btn-add-cart:active { transform: scale(0.97); }
+    .btn-add-cart.added {
+      background: linear-gradient(135deg, #43a047, #1b5e20);
+    }
+
+    /* ===== SECTION PANEL ===== */
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+
+    /* ===== CHECKOUT CARD ===== */
+    .checkout-section { position: sticky; top: 20px; }
+    .checkout-card {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      border-radius: 16px; padding: 22px;
+      box-shadow: 0 8px 30px rgba(46,125,50,0.25);
+      color: white;
+    }
+    .checkout-card h5 {
+      font-weight: 700; font-size: 1.2rem; margin-bottom: 16px;
+      color: white; display: flex; align-items: center; gap: 8px;
+    }
+    .cart-empty { text-align: center; padding: 25px 15px; opacity: 0.8; }
+    .cart-empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .checkout-items {
+      background: rgba(255,255,255,0.1); border-radius: 12px;
+      padding: 12px; margin-bottom: 12px; max-height: 280px; overflow-y: auto;
+    }
+    .checkout-items::-webkit-scrollbar { width: 5px; }
+    .checkout-items::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .checkout-items::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+    .checkout-row {
+      display: flex; justify-content: space-between; margin-bottom: 9px;
+      font-size: 0.88rem; padding-bottom: 7px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .checkout-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .item-name { flex: 1; font-weight: 500; }
+    .item-price { font-weight: 600; }
+    .checkout-total {
+      border-top: 2px solid rgba(255,255,255,0.3);
+      padding-top: 10px; margin-top: 10px; font-size: 1.1rem; font-weight: 700;
+    }
+    .btn-checkout {
+      background: white; color: #2e7d32; border: none; padding: 12px 20px;
+      border-radius: 20px; font-weight: 700; font-size: 0.95rem;
+      transition: all 0.2s; cursor: pointer; width: 100%;
+      box-shadow: 0 4px 15px rgba(255,255,255,0.2); margin-top: 14px;
+    }
+    .btn-checkout:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(255,255,255,0.3); }
+    .btn-checkout:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .remove-item {
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      width: 22px; height: 22px; border-radius: 50%; font-size: 0.75rem;
+      cursor: pointer; transition: all 0.2s; margin-left: 6px;
+    }
+    .remove-item:hover { background: rgba(255,80,80,0.8); transform: scale(1.1); }
+
+    /* Cart badge on tab */
+    .cart-badge {
+      background: #ff5722; color: white; border-radius: 50%;
+      width: 20px; height: 20px; font-size: 0.7rem; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 4px;
+    }
+
+    @media (max-width: 991px) { .checkout-section { position: static; margin-top: 20px; } }
+    @media (max-width: 768px) {
+      .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+      .page-header h2 { font-size: 1.6rem; }
+      .cat-tab .tab-label span:first-child { font-size: 0.82rem; }
+      .product-emoji { width: 44px; height: 44px; font-size: 1.5rem; }
+    }
+    @media (max-width: 480px) {
+      .products-grid { grid-template-columns: 1fr 1fr; }
+      .category-tabs { gap: 6px; padding: 6px; }
+      .cat-tab { padding: 10px 6px; font-size: 0.78rem; }
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #ffffff, #f0fff0);
+      color: #4caf50; padding: 40px 50px 25px; margin: 40px 40px 40px;
+      border-radius: 24px; box-shadow: 0 20px 60px rgba(46,125,50,0.15), 0 8px 25px rgba(0,0,0,0.08);
+      border: 1px solid rgba(46,125,50,0.1);
+    }
+    .footer-top-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      align-items: center; padding-bottom: 30px;
+    }
+    .footer-col-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-col-left a { color: #4caf50; text-decoration: underline; font-size: 14px; transition: color 0.3s; }
+    .footer-col-left a:hover { color: #2e7d32; }
+    .footer-col-center { text-align: center; }
+    .footer-logo { font-size: 28px; font-weight: 700; color: #2e7d32; letter-spacing: 2px; }
+    .footer-col-right { display: flex; justify-content: flex-end; }
+    .social-section { display: flex; gap: 18px; }
+    .social-icon {
+      width: 36px; height: 36px; border-radius: 50%; background: transparent;
+      display: flex; align-items: center; justify-content: center; color: #4caf50;
+      text-decoration: none; font-size: 16px; transition: all 0.3s ease;
+      border: 1px solid rgba(46,125,50,0.3);
+    }
+    .social-icon:hover { background: #2e7d32; color: white; border-color: #2e7d32; transform: translateY(-3px); }
+    .footer-divider { border-color: rgba(46,125,50,0.1); margin: 0 0 20px 0; }
+    .footer-bottom { text-align: center; font-size: 12px; color: #81c784; display: flex; flex-direction: column; gap: 8px; }
+    .footer-bottom p { margin: 0; }
+    .footer-bottom-links { display: flex; justify-content: center; gap: 20px; }
+    .footer-bottom-links a { color: #81c784; text-decoration: underline; font-size: 13px; transition: color 0.3s; }
+    .footer-bottom-links a:hover { color: #4caf50; }
+    @media (max-width: 768px) {
+      .footer-top-row { grid-template-columns: 1fr; text-align: center; gap: 25px; }
+      .footer-col-right { justify-content: center; }
+      .footer-bottom-links { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">GreenSphere</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="identify.html">Identify</a></li>
+        <li class="nav-item"><a class="nav-link" href="disease.html">Disease</a></li>
+        <li class="nav-item"><a class="nav-link" href="nursery.html">Nurseries</a></li>
+        <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-3">
+  <div class="page-header">
+    <h2>🛒 Order from Nursery</h2>
+    <p>Choose from Plants, Pesticides & Gardening Tools</p>
+  </div>
+
+  <div class="nursery-info-banner">
+    <h4 id="nurseryName">Loading nursery...</h4>
+    <p id="nurseryLocation">Please wait...</p>
+  </div>
+
+  <div class="row">
+    <!-- LEFT: Products -->
+    <div class="col-lg-8">
+
+      <!-- Category Tabs -->
+      <div class="category-tabs">
+        <button class="cat-tab active" onclick="switchTab('plants')" id="tab-plants">
+          <span class="tab-icon">🌿</span>
+          <span class="tab-label">
+            <span>Plants</span>
+            <span class="tab-count">30 varieties</span>
+          </span>
+        </button>
+        <button class="cat-tab" onclick="switchTab('pesticides')" id="tab-pesticides">
+          <span class="tab-icon">🧴</span>
+          <span class="tab-label">
+            <span>Pesticides</span>
+            <span class="tab-count">15 products</span>
+          </span>
+        </button>
+        <button class="cat-tab" onclick="switchTab('tools')" id="tab-tools">
+          <span class="tab-icon">🔧</span>
+          <span class="tab-label">
+            <span>Tools</span>
+            <span class="tab-count">15 items</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Search products..." oninput="filterProducts()">
+      </div>
+
+      <!-- PLANTS PANEL -->
+      <div class="section-panel active" id="panel-plants">
+        <div class="products-grid" id="grid-plants"></div>
+      </div>
+
+      <!-- PESTICIDES PANEL -->
+      <div class="section-panel" id="panel-pesticides">
+        <div class="products-grid" id="grid-pesticides"></div>
+      </div>
+
+      <!-- TOOLS PANEL -->
+      <div class="section-panel" id="panel-tools">
+        <div class="products-grid" id="grid-tools"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Cart -->
+    <div class="col-lg-4">
+      <div class="checkout-section">
+        <div class="checkout-card">
+          <h5>🛍️ Your Cart <span id="cartCountBadge" style="display:none;" class="cart-badge">0</span></h5>
+          <div id="cartContent">
+            <div class="cart-empty">
+              <div class="cart-empty-icon">🌱</div>
+              <p style="margin:0;font-size:0.88rem;">Cart is empty<br>Add plants, tools or pesticides!</p>
+            </div>
+          </div>
+          <button class="btn-checkout" id="checkoutBtn" disabled onclick="checkout()">
+            Proceed to Checkout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==============================
+// DATA
+// ==============================
+const PLANTS = [
+  { name: "Tulsi Plant",     price: 120, badge: "Medicinal",       img: "plants/tulsi.webp" },
+  { name: "Aloe Vera",       price: 150, badge: "Indoor",          img: "plants/aloe vera.jpg" },
+  { name: "Money Plant",     price: 100, badge: "Indoor",          img: "plants/chinease money plant.jpg" },
+  { name: "Snake Plant",     price: 180, badge: "Low Light",       img: "plants/snake plant.jpg" },
+  { name: "Peace Lily",      price: 200, badge: "Flowering",       img: "plants/peace lily.jpg" },
+  { name: "Spider Plant",    price: 130, badge: "Air Purifier",    img: "plants/spider.jpg" },
+  { name: "Monstera",        price: 280, badge: "Tropical",        img: "plants/monstera.jpg" },
+  { name: "Golden Pothos",   price: 120, badge: "Indoor",          img: "plants/Golden Pothos.webp" },
+  { name: "Areca Palm",      price: 350, badge: "Air Purifier",    img: "plants/Areca Palm.jpg" },
+  { name: "Bird of Paradise",price: 420, badge: "Exotic",          img: "plants/bird of paradise.jpg" },
+  { name: "Boston Fern",     price: 160, badge: "Shade Loving",    img: "plants/bostern fern.webp" },
+  { name: "Calathea",        price: 240, badge: "Decorative",      img: "plants/calathea  orbifolia.jpg" },
+  { name: "Fiddle Leaf Fig", price: 380, badge: "Statement Plant", img: "plants/fiddle leaf.webp" },
+  { name: "Heartleaf Philodendron", price: 150, badge: "Trailing", img: "plants/heartleaf.webp" },
+  { name: "String of Pearls",price: 200, badge: "Succulent",       img: "plants/string of pearls.webp" },
+  { name: "ZZ Plant",        price: 200, badge: "Low Maintenance", img: "plants/zz.webp" },
+  { name: "English Ivy",     price: 90,  badge: "Climbing",        img: "plants/english ivy.webp" },
+  { name: "Rose Bush",       price: 250, badge: "Flowering",       emoji: "🌹" },
+  { name: "Marigold",        price: 80,  badge: "Flowering",       emoji: "🌼" },
+  { name: "Basil",           price: 90,  badge: "Culinary",        emoji: "🌿" },
+  { name: "Jasmine",         price: 220, badge: "Fragrant",        emoji: "🌸" },
+  { name: "Orchid",          price: 300, badge: "Exotic",          emoji: "🌺" },
+  { name: "Lavender",        price: 190, badge: "Fragrant",        emoji: "💜" },
+  { name: "Cactus",          price: 110, badge: "Low Maintenance", emoji: "🌵" },
+  { name: "Sunflower",       price: 140, badge: "Flowering",       emoji: "🌻" },
+  { name: "Mint",            price: 70,  badge: "Culinary",        emoji: "🌱" },
+  { name: "Hibiscus",        price: 210, badge: "Tropical",        emoji: "🌺" },
+  { name: "Chrysanthemum",   price: 180, badge: "Flowering",       emoji: "🌸" },
+  { name: "Daffodil",        price: 130, badge: "Spring Bloom",    emoji: "🌼" },
+  { name: "Geranium",        price: 170, badge: "Flowering",       emoji: "🌷" },
+];
+
+const PESTICIDES = [
+  { name: "Neem Oil Spray",         price: 180, emoji: "🌿", badge: "Organic" },
+  { name: "Pyrethrin Insecticide",  price: 250, emoji: "🧴", badge: "Broad Spectrum" },
+  { name: "Copper Fungicide",       price: 210, emoji: "🔵", badge: "Fungal Control" },
+  { name: "Spinosad Concentrate",   price: 320, emoji: "🌱", badge: "Bio-based" },
+  { name: "Imidacloprid Granules",  price: 280, emoji: "🟤", badge: "Systemic" },
+  { name: "Mancozeb Powder",        price: 160, emoji: "⚪", badge: "Fungicide" },
+  { name: "Bt (Bacillus) Spray",    price: 240, emoji: "🧫", badge: "Biological" },
+  { name: "White Oil Emulsion",     price: 145, emoji: "🥛", badge: "Scale & Mite" },
+  { name: "Sulphur Dust",           price: 120, emoji: "🟡", badge: "Fungicide" },
+  { name: "Trichoderma Powder",     price: 195, emoji: "🟢", badge: "Bio-fungicide" },
+  { name: "Insecticidal Soap",      price: 175, emoji: "🫧", badge: "Contact Kill" },
+  { name: "Chlorpyrifos Spray",     price: 300, emoji: "🧪", badge: "Broad Spectrum" },
+  { name: "Carbendazim Fungicide",  price: 230, emoji: "🔬", badge: "Systemic Fungicide" },
+  { name: "Garlic Pepper Spray",    price: 110, emoji: "🧄", badge: "Natural" },
+  { name: "Diatomaceous Earth",     price: 260, emoji: "⚪", badge: "Non-toxic" },
+];
+
+const TOOLS = [
+  { name: "Garden Trowel",         price: 180, emoji: "🪛", badge: "Hand Tool" },
+  { name: "Pruning Shears",        price: 350, emoji: "✂️", badge: "Cutting" },
+  { name: "Watering Can",          price: 250, emoji: "🪣", badge: "Watering" },
+  { name: "Garden Hoe",            price: 420, emoji: "⛏️", badge: "Soil Tool" },
+  { name: "Soil pH Meter",         price: 580, emoji: "📊", badge: "Testing" },
+  { name: "Spray Bottle (2L)",     price: 140, emoji: "🚿", badge: "Spraying" },
+  { name: "Gardening Gloves",      price: 120, emoji: "🧤", badge: "Safety" },
+  { name: "Seed Dispenser",        price: 190, emoji: "🌾", badge: "Planting" },
+  { name: "Compost Bin",           price: 850, emoji: "♻️", badge: "Composting" },
+  { name: "Kneeling Pad",          price: 160, emoji: "🟫", badge: "Comfort" },
+  { name: "Plant Ties & Stakes",   price: 95,  emoji: "🪢", badge: "Support" },
+  { name: "Garden Fork",           price: 390, emoji: "🍴", badge: "Soil Tool" },
+  { name: "Soil Moisture Meter",   price: 460, emoji: "💧", badge: "Testing" },
+  { name: "Potting Scoop Set",     price: 220, emoji: "🥄", badge: "Hand Tool" },
+  { name: "Handheld Cultivator",   price: 275, emoji: "🔱", badge: "Loosening" },
+];
+
+// ==============================
+// STATE
+// ==============================
+let cart = [];
+let nurseryData = {};
+let currentTab = 'plants';
+
+// ==============================
+// INIT
+// ==============================
+window.addEventListener('DOMContentLoaded', function () {
+  loadNursery();
+  renderGrid('plants', PLANTS);
+  renderGrid('pesticides', PESTICIDES);
+  renderGrid('tools', TOOLS);
+  updateCart();
+});
+
+function loadNursery() {
+  const nurseries = {
+    "Green Leaf Nursery":     { name:"Green Leaf Nursery",    area:"Gachibowli",    city:"Hyderabad", state:"Telangana", distance:"2.3 km" },
+    "Nature's Paradise":      { name:"Nature's Paradise",     area:"Gachibowli",    city:"Hyderabad", state:"Telangana", distance:"2.8 km" },
+    "Urban Jungle Nursery":   { name:"Urban Jungle Nursery",  area:"Gachibowli",    city:"Hyderabad", state:"Telangana", distance:"3.1 km" },
+    "GreenThumb Gardens":     { name:"GreenThumb Gardens",    area:"Gachibowli",    city:"Hyderabad", state:"Telangana", distance:"3.5 km" },
+    "EcoGreen Nursery":       { name:"EcoGreen Nursery",      area:"Hitech City",   city:"Hyderabad", state:"Telangana", distance:"4.2 km" },
+    "Plant Villa":            { name:"Plant Villa",           area:"Hitech City",   city:"Hyderabad", state:"Telangana", distance:"4.7 km" },
+    "Bloom & Grow":           { name:"Bloom & Grow",          area:"Hitech City",   city:"Hyderabad", state:"Telangana", distance:"5.1 km" },
+    "Royal Gardens Nursery":  { name:"Royal Gardens Nursery", area:"Banjara Hills", city:"Hyderabad", state:"Telangana", distance:"6.8 km" },
+    "Green Haven":            { name:"Green Haven",           area:"Banjara Hills", city:"Hyderabad", state:"Telangana", distance:"7.3 km" },
+    "Flora Boutique":         { name:"Flora Boutique",        area:"Jubilee Hills", city:"Hyderabad", state:"Telangana", distance:"8.1 km" },
+    "Green Essence":          { name:"Green Essence",         area:"Jubilee Hills", city:"Hyderabad", state:"Telangana", distance:"8.6 km" },
+    "PlantHub":               { name:"PlantHub",              area:"Madhapur",      city:"Hyderabad", state:"Telangana", distance:"5.4 km" },
+    "Fresh Greens Nursery":   { name:"Fresh Greens Nursery",  area:"Madhapur",      city:"Hyderabad", state:"Telangana", distance:"5.9 km" },
+    "Green World Nursery":    { name:"Green World Nursery",   area:"Kukatpally",    city:"Hyderabad", state:"Telangana", distance:"12.3 km" },
+    "Nature's Basket":        { name:"Nature's Basket",       area:"Kukatpally",    city:"Hyderabad", state:"Telangana", distance:"12.8 km" },
+  };
+
+  // Try multiple possible sessionStorage keys your nursery.html might use
+  const possibleKeys = ['selectedNursery', 'nurseryName', 'selectedNurseryName', 'nursery'];
+  let sel = null;
+  for (const key of possibleKeys) {
+    const val = sessionStorage.getItem(key);
+    if (val) { sel = val; break; }
+  }
+
+  // Also check if nursery data was stored as a JSON object
+  let storedObj = null;
+  for (const key of ['selectedNurseryData', 'nurseryData', 'nurseryInfo']) {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw) { storedObj = JSON.parse(raw); break; }
+    } catch(e) {}
+  }
+
+  if (storedObj && storedObj.name) {
+    // Full object was stored — use it directly
+    nurseryData = storedObj;
+  } else if (sel && nurseries[sel]) {
+    // Name string found — look up from local nurseries map
+    nurseryData = nurseries[sel];
+  } else {
+    // Nothing found — show a "not selected" warning instead of silently defaulting
+    nurseryData = { name:"Unknown Nursery", area:"", city:"", state:"", distance:"" };
+    document.getElementById('nurseryName').textContent = `⚠️ No nursery selected`;
+    document.getElementById('nurseryLocation').textContent = `Please go back and select a nursery first`;
+    document.getElementById('nurseryName').style.color = '#ffcc80';
+    return;
+  }
+
+  document.getElementById('nurseryName').textContent = `🏪 ${nurseryData.name}`;
+  document.getElementById('nurseryLocation').textContent = `📍 ${nurseryData.area ? nurseryData.area + ', ' : ''}${nurseryData.city}, ${nurseryData.state}${nurseryData.distance ? ' • ' + nurseryData.distance : ''}`;
+}
+
+// ==============================
+// RENDER GRIDS
+// ==============================
+function renderGrid(type, items) {
+  const grid = document.getElementById(`grid-${type}`);
+  grid.innerHTML = items.map((item, idx) => {
+    const mediaHtml = item.img
+      ? `<img src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.parentElement.innerHTML='<span style=\'font-size:2rem\'>${item.emoji||'🌿'}</span>'">`
+      : `<span style="font-size:2rem">${item.emoji||'🌿'}</span>`;
+    return `
+    <div class="product-card" style="animation-delay:${(idx % 12) * 0.04}s" data-name="${item.name.toLowerCase()}">
+      <div class="product-header">
+        <div class="product-emoji">${mediaHtml}</div>
+        <div class="product-info">
+          <h5 title="${item.name}">${item.name}</h5>
+          <div class="product-price">&#8377;${item.price}</div>
+          <span class="product-badge">${item.badge}</span>
+        </div>
+      </div>
+      <div class="quantity-controls">
+        <div class="qty-group">
+          <label>Qty:</label>
+          <input type="number" class="quantity-input" value="1" min="1" max="99">
+        </div>
+        <button class="btn-add-cart" onclick="addToCart('${item.name}', ${item.price}, '${type}', this)">
+          + Add
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==============================
+// TAB SWITCHING
+// ==============================
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  document.getElementById('searchInput').value = '';
+  filterProducts();
+}
+
+// ==============================
+// SEARCH / FILTER
+// ==============================
+function filterProducts() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const grid = document.getElementById(`grid-${currentTab}`);
+  const cards = grid.querySelectorAll('.product-card');
+  cards.forEach(card => {
+    const name = card.getAttribute('data-name');
+    card.style.display = name.includes(q) ? '' : 'none';
+  });
+}
+
+// ==============================
+// CART
+// ==============================
+function addToCart(name, price, category, btn) {
+  const card = btn.closest('.product-card');
+  const qty = parseInt(card.querySelector('.quantity-input').value) || 1;
+  if (qty < 1) { alert('Quantity must be at least 1'); return; }
+
+  const existing = cart.findIndex(i => i.name === name);
+  if (existing > -1) {
+    cart[existing].quantity += qty;
+  } else {
+    cart.push({ name, price, quantity: qty, category });
+  }
+
+  // Visual feedback
+  btn.textContent = '✓ Added!';
+  btn.classList.add('added');
+  setTimeout(() => { btn.textContent = '+ Add'; btn.classList.remove('added'); }, 900);
+
+  updateCart();
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  updateCart();
+}
+
+function updateCart() {
+  const content = document.getElementById('cartContent');
+  const btn = document.getElementById('checkoutBtn');
+  const badge = document.getElementById('cartCountBadge');
+  const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
+
+  if (totalItems > 0) {
+    badge.style.display = 'inline-flex';
+    badge.textContent = totalItems;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  if (cart.length === 0) {
+    content.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🌱</div>
+        <p style="margin:0;font-size:0.88rem;">Cart is empty<br>Add plants, tools or pesticides!</p>
+      </div>`;
+    btn.disabled = true;
+    return;
+  }
+
+  let total = 0;
+  let html = '<div class="checkout-items">';
+  cart.forEach((item, idx) => {
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
+    const catEmoji = item.category === 'plants' ? '🌿' : item.category === 'pesticides' ? '🧴' : '🔧';
+    html += `
+      <div class="checkout-row">
+        <span class="item-name">${catEmoji} ${item.name} ×${item.quantity}</span>
+        <span style="display:flex;align-items:center;">
+          <span class="item-price">₹${itemTotal}</span>
+          <button class="remove-item" onclick="removeFromCart(${idx})" title="Remove">×</button>
+        </span>
+      </div>`;
+  });
+  html += '</div>';
+  html += `<div class="checkout-total">
+    <div class="checkout-row" style="border:none;">
+      <span>Total (${totalItems} items):</span>
+      <span>₹${total}</span>
+    </div>
+  </div>`;
+
+  content.innerHTML = html;
+  btn.disabled = false;
+}
+
+// ==============================
+// CHECKOUT
+// ==============================
+function checkout() {
+  if (!cart.length) { alert('Cart is empty!'); return; }
+
+  const userStr = localStorage.getItem('currentUser');
+  if (!userStr) {
+    alert('Please login first to place an order');
+    window.location.href = 'registration.html';
+    return;
+  }
+
+  const currentUser = JSON.parse(userStr);
+  
+  // Ensure user_id exists; generate one if missing
+  let userId = currentUser.id;
+  if (!userId) {
+    // If no ID exists, generate a hash from email
+    userId = Math.abs(hashCode(currentUser.email)) % 1000000 || 1;
+    // Also store it back to localStorage
+    currentUser.id = userId;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  }
+
+  const totalPlants = cart.reduce((s, i) => s + i.quantity, 0);
+  const totalAmount = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+  const orderId = 'ORD-2026-' + String(Math.floor(Math.random() * 90000) + 10000);
+
+  const orderData = {
+    nursery: nurseryData, cart, totalPlants, totalAmount,
+    orderDate: new Date().toISOString(), orderId, paymentStatus: 'pending'
+  };
+
+  const apiOrderData = {
+    user_id: userId,
+    order_id: orderId,
+    nursery: { name: nurseryData.name||'', area: nurseryData.area||'', city: nurseryData.city||'', state: nurseryData.state||'', distance: nurseryData.distance||'' },
+    items: cart.map(i => ({ name: i.name, quantity: i.quantity, unit_price: i.price, category: i.category })),
+    total_plants: totalPlants,
+    total_amount: totalAmount,
+    payment_status: 'pending',
+    delivery_address: currentUser.address || ''
+  };
+
+  const btn = document.getElementById('checkoutBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing...';
+
+  fetch('/api/nursery/orders/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(apiOrderData)
+  })
+  .then(r => { 
+    if (!r.ok) {
+      return r.json().then(data => {
+        throw new Error(data.error || `HTTP ${r.status}`);
+      });
+    }
+    return r.json();
+  })
+  .then(data => {
+    if (data.success) {
+      sessionStorage.setItem('currentOrder', JSON.stringify(orderData));
+      // Clear cart after successful order
+      cart = [];
+      updateCart();
+      window.location.href = 'payment.html';
+    } else {
+      throw new Error(data.error || 'Failed to save order');
+    }
+  })
+  .catch(err => {
+    console.error('Checkout error:', err);
+    alert('Error placing order: ' + (err.message || 'Unknown error'));
+    btn.disabled = false;
+    btn.innerHTML = 'Proceed to Checkout';
+  });
+}
+
+// Helper function to generate numeric hash from string
+function hashCode(str) {
+  let hash = 0;
+  if (str.length === 0) return hash;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center"><span class="footer-logo">🌿 GreenSphere</span></div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer> 
+</body>
+</html>

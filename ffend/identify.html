@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Identify Plant | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #EDF9EB;
+      font-family: "Segoe UI", sans-serif;
+    }
+    .navbar-brand {
+      font-weight: bold;
+      color: #2e7d32 !important;
+    }
+    .page-title {
+      color: #1b5e20;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .upload-box {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      transition: all 0.4s ease;
+    }
+    .upload-icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+    }
+    .btn-success {
+      background-color: #2e7d32;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 26px;
+    }
+    .file-input-wrapper {
+      max-width: 300px;
+      margin: 0 auto 20px;
+    }
+    .plant-card-wrapper {
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 100%;
+    }
+    .plant-card-wrapper:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .plant-card {
+      padding: 18px 18px 12px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .plant-card-buttons {
+      display: flex;
+      gap: 10px;
+      padding: 0 18px 18px;
+      flex-shrink: 0;
+    }
+    .plant-card-buttons .btn-card-garden,
+    .plant-card-buttons .btn-card-agent {
+      flex: 1;
+      padding: 10px 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      line-height: 1;
+      border-radius: 30px;
+    }
+    .plant-card-buttons .btn-card-garden {
+      background: #2e7d32;
+      color: white;
+    }
+    .plant-card-buttons .btn-card-garden:hover {
+      background: #1b5e20;
+      transform: translateY(-1px);
+    }
+    .plant-card-buttons .btn-card-agent {
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      color: white;
+    }
+    .plant-card-buttons .btn-card-agent:hover {
+      background: linear-gradient(135deg, #388e3c, #1b5e20);
+      transform: translateY(-1px);
+    }
+    .plant-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .plant-name {
+      font-weight: 600;
+      color: #1b5e20;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    .plant-scientific {
+      color: #666;
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+    .section-title {
+      color:  #1b5e20;
+      font-weight: 700;
+      font-size: 2.0rem;
+      margin-bottom: 15px;
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+
+    .section-subtitle {
+      color: #666;
+      font-size: 1.0rem;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 400;
+    }
+
+    .section-title-large {
+      color: #1b5e20;
+      font-weight: 700;
+      font-size: 3rem;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: -1px;
+    }
+    .modal-content {
+      border-radius: 20px;
+      border: none;
+    }
+    .modal-header {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      border-radius: 20px 20px 0 0;
+      padding: 20px 30px;
+    }
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.8rem;
+    }
+    .modal-body {
+      padding: 30px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .info-section {
+      margin-bottom: 25px;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #2e7d32;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-content {
+      color: #333;
+      line-height: 1.6;
+      padding-left: 28px;
+    }
+    .purpose-badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .navbar-profile {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-left: 20px;
+      padding-left: 20px;
+      border-left: 1px solid #e0e0e0;
+    }
+    
+    .profile-image-navbar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #2e7d32;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .profile-image-navbar:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+    }
+    
+    .profile-image-navbar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    @media (max-width: 768px) {
+      .navbar-profile {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: 10px;
+      }
+    }
+    
+    .btn-add-garden {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 30px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-add-garden:hover {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+    }
+    
+    .button-group .btn-add-garden {
+      width: auto;
+      margin-top: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .toxicity-warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .toxicity-safe {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    /* NEW STYLES FOR SPLIT SCREEN LAYOUT */
+    .identification-container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      margin-bottom: 40px;
+    }
+
+    .upload-section {
+      flex: 1;
+      min-width: 350px;
+    }
+
+    .upload-section.compact .upload-box {
+      max-width: 100%;
+      padding: 20px;
+    }
+
+    .upload-section.compact .upload-icon {
+      font-size: 35px;
+      margin-bottom: 10px;
+    }
+
+    .upload-section.compact .file-input-wrapper {
+      max-width: 250px;
+    }
+
+    .results-section {
+      flex: 1.5;
+      display: none;
+      opacity: 0;
+      transform: translateX(20px);
+      transition: all 0.5s ease;
+    }
+
+    .results-section.show {
+      display: block;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .result-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .result-card h4 {
+      color: #1b5e20;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .result-card .scientific-name {
+      color: #666;
+      font-style: italic;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+
+    .uploaded-image-preview {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .identification-container {
+        flex-direction: column;
+      }
+      
+      .upload-section {
+        min-width: 100%;
+      }
+
+      .results-section {
+        width: 100%;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #ffffff, #f0fff0);
+      color: #4caf50;
+      padding: 40px 50px 25px;
+      margin: 40px 40px 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(46, 125, 50, 0.15),
+                  0 8px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(46, 125, 50, 0.1);
+      position: relative;
+    }
+
+    .footer-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding-bottom: 30px;
+    }
+
+    .footer-col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-col-left a {
+      color: #4caf50;
+      text-decoration: underline;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .footer-col-left a:hover {
+      color: #2e7d32;
+    }
+
+    .footer-col-center {
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2e7d32;
+      letter-spacing: 2px;
+    }
+
+    .footer-col-right {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .social-section {
+      display: flex;
+      gap: 18px;
+    }
+
+    .social-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4caf50;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(46, 125, 50, 0.3);
+    }
+
+    .social-icon:hover {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+      transform: translateY(-3px);
+    }
+
+    .footer-divider {
+      border-color: rgba(46, 125, 50, 0.1);
+      margin: 0 0 20px 0;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      font-size: 12px;
+      color: #81c784;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-bottom p {
+      margin: 0;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .footer-bottom-links a {
+      color: #81c784;
+      text-decoration: underline;
+      font-size: 13px;
+      transition: color 0.3s;
+    }
+
+    .footer-bottom-links a:hover {
+      color: #4caf50;
+    }
+
+    @media (max-width: 768px) {
+      .footer-top-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 25px;
+      }
+
+      .footer-col-right {
+        justify-content: center;
+      }
+
+      .footer-bottom-links {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .button-group .btn {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 30px;
+      font-weight: 600;
+      border-radius: 30px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-business-agent {
+      background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+      color: white;
+    }
+
+    .btn-business-agent:hover:not(:disabled) {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+      color: white;
+    }
+
+    .btn-business-agent:disabled {
+      background: #cccccc;
+      color: #999999;
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
+    .btn-business-agent:active:not(:disabled) {
+      transform: translateY(0px);
+    }
+
+    @media (max-width: 768px) {
+      .button-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .button-group .btn {
+        min-width: 100%;
+        width: 100%;
+      }
+    }
+    
+    .profile-dropdown {
+      position: absolute;
+      top: 65px;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.2);
+      min-width: 300px;
+      display: none;
+      z-index: 1000;
+      border: 1px solid #e0e0e0;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .profile-dropdown.active {
+      display: block;
+    }
+    
+    .profile-dropdown-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+      border-radius: 11px 11px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .profile-dropdown-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid white;
+      flex-shrink: 0;
+    }
+    
+    .profile-dropdown-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .profile-dropdown-info {
+      flex: 1;
+    }
+    
+    .profile-dropdown-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .profile-dropdown-email {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+    
+    .profile-dropdown-body {
+      padding: 15px 20px;
+    }
+    
+    .profile-detail-row {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .profile-detail-row:last-child {
+      border-bottom: none;
+    }
+    
+    .profile-detail-label {
+      font-weight: 600;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .profile-detail-value {
+      color: #333;
+      font-size: 0.9rem;
+      text-align: right;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .profile-dropdown-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .profile-dropdown-footer a {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    
+    .profile-btn-view {
+      background: linear-gradient(135deg, #66bb6a, #2e7d32);
+      color: white;
+    }
+    
+    .profile-btn-view:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+      text-decoration: none;
+      color: white;
+    }
+    
+    .profile-btn-logout {
+      background: #f5f5f5;
+      color: #f44336;
+      border: 1px solid #f0f0f0;
+    }
+    
+    .profile-btn-logout:hover {
+      background: #ffebee;
+      text-decoration: none;
+    }
+
+    /* =============================================
+       GREENSPHERE AGENT POPUP MODAL STYLES
+       ============================================= */
+    .agent-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .agent-modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .agent-modal-box {
+      background: #ffffff;
+      border-radius: 28px;
+      width: 100%;
+      max-width: 820px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.25), 0 10px 30px rgba(46,125,50,0.15);
+      transform: translateY(40px) scale(0.96);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+      overflow: hidden;
+    }
+
+    .agent-modal-overlay.active .agent-modal-box {
+      transform: translateY(0) scale(1);
+    }
+
+    .agent-modal-header {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #43a047 100%);
+      padding: 24px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .agent-modal-header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+    }
+
+    .agent-modal-header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 30%;
+      width: 140px; height: 140px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    .agent-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .agent-avatar {
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      border: 2px solid rgba(255,255,255,0.3);
+      flex-shrink: 0;
+    }
+
+    .agent-header-info h4 {
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin: 0 0 2px 0;
+      letter-spacing: 0.3px;
+    }
+
+    .agent-header-info span {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.82rem;
+    }
+
+    .agent-plant-chip {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .agent-modal-close {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .agent-modal-close:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .agent-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px;
+    }
+
+    .agent-modal-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .agent-modal-body::-webkit-scrollbar-track {
+      background: #f0f0f0;
+      border-radius: 3px;
+    }
+    .agent-modal-body::-webkit-scrollbar-thumb {
+      background: #a5d6a7;
+      border-radius: 3px;
+    }
+
+    /* Loading state inside agent modal */
+    .agent-loading-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      gap: 20px;
+    }
+
+    .agent-loading-orb {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4caf50, #1b5e20);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      animation: orbPulse 1.6s ease-in-out infinite;
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+
+    @keyframes orbPulse {
+      0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(76,175,80,0.4); }
+      50%  { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(76,175,80,0); }
+      100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+    }
+
+    .agent-loading-text {
+      color: #2e7d32;
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .agent-loading-dots span {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #4caf50;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: dotBounce 1.2s ease-in-out infinite;
+    }
+    .agent-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .agent-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotBounce {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+      40%            { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* Error state in agent modal */
+    .agent-error-box {
+      background: #fff5f5;
+      border: 1px solid #ffcdd2;
+      border-left: 4px solid #ef5350;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 10px 0;
+    }
+
+    .agent-error-box strong {
+      color: #c62828;
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .agent-error-box p {
+      color: #555;
+      margin: 0 0 12px 0;
+      font-size: 0.92rem;
+    }
+
+    /* Content sections in agent modal */
+    .agent-content-section {
+      background: #f8fdf8;
+      border: 1px solid #e0f2e0;
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+
+    .agent-content-section h6 {
+      color: #1b5e20;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* =============================================
+       ENHANCED DONUT CHART STYLES
+       ============================================= */
+    .donut-chart-wrapper {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 24px;
+      align-items: center;
+      padding: 16px;
+      background: linear-gradient(135deg, #f0fff0, #e8f5e9);
+      border-radius: 14px;
+      border: 1px solid #c8e6c9;
+    }
+
+    .donut-svg-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      flex-shrink: 0;
+    }
+
+    .donut-svg-container svg {
+      transform: rotate(-90deg);
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+    }
+
+    .donut-center-label {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .donut-center-label .center-pct {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1b5e20;
+      line-height: 1;
+    }
+
+    .donut-center-label .center-lbl {
+      display: block;
+      font-size: 0.68rem;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
+
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .donut-legend-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    .donut-legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .donut-legend-name {
+      flex: 1;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .donut-legend-pct {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #2e7d32;
+      background: #e8f5e9;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* Segment hover highlight */
+    .donut-segment {
+      transition: opacity 0.25s, stroke-width 0.25s;
+      cursor: pointer;
+    }
+    .donut-segment:hover {
+      opacity: 0.85;
+      stroke: white;
+      stroke-width: 2;
+    }
+
+    /* Animated stroke draw */
+    @keyframes drawSegment {
+      from { stroke-dashoffset: 1000; }
+      to   { stroke-dashoffset: 0; }
+    }
+
+    /* Agent modal footer */
+    .agent-modal-footer {
+      padding: 16px 30px;
+      border-top: 1px solid #e8f5e9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .agent-modal-footer .btn-refresh {
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      color: white;
+      border: none;
+      border-radius: 22px;
+      padding: 10px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .agent-modal-footer .btn-refresh:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(46,125,50,0.35);
+    }
+
+    .agent-modal-footer .btn-close-agent {
+      background: #f5f5f5;
+      color: #555;
+      border: 1px solid #ddd;
+      border-radius: 22px;
+      padding: 10px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .agent-modal-footer .btn-close-agent:hover {
+      background: #eeeeee;
+    }
+
+    /* Eco product collapsible card */
+    .eco-product-card {
+      border: 1px solid #c8e6c9;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+    .eco-product-card:hover {
+      box-shadow: 0 4px 16px rgba(46,125,50,0.12);
+    }
+
+    .eco-product-header {
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #f1f8f1, #e8f5e9);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .eco-product-header:hover {
+      background: linear-gradient(135deg, #e8f5e9, #dcedc8);
+    }
+
+    .eco-product-title {
+      font-weight: 700;
+      color: #1b5e20;
+      font-size: 0.95rem;
+      margin: 0 0 3px 0;
+    }
+
+    .eco-product-subtitle {
+      font-size: 0.8rem;
+      color: #666;
+      margin: 0;
+    }
+
+    .eco-product-toggle {
+      font-size: 20px;
+      color: #4caf50;
+      transition: transform 0.3s;
+      font-weight: bold;
+    }
+
+    .eco-product-body {
+      display: none;
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e0f2e0;
+    }
+
+    .eco-product-body.open {
+      display: block;
+      animation: fadeSlideDown 0.3s ease;
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .info-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+
+    .info-row-label {
+      font-weight: 700;
+      color: #2e7d32;
+      font-size: 0.85rem;
+      min-width: 110px;
+      flex-shrink: 0;
+    }
+
+    .info-row-value {
+      color: #444;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .trade-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .trade-item {
+      background: #f0faf0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border-left: 3px solid #4caf50;
+    }
+
+    .trade-item-label {
+      font-size: 0.75rem;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+
+    .trade-item-value {
+      font-size: 0.88rem;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .trend-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .trend-up   { background: #e8f5e9; color: #2e7d32; }
+    .trend-down { background: #fff3e0; color: #e65100; }
+    .trend-flat { background: #f3e5f5; color: #6a1b9a; }
+
+    /* responsive donut */
+    @media (max-width: 500px) {
+      .donut-chart-wrapper {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🌿 GreenSphere</a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link active" href="identify.html">Identify</a></li>
+      <li class="nav-item"><a class="nav-link" href="disease.html">Disease</a></li>
+      <li class="nav-item"><a class="nav-link" href="nursery.html">Nurseries</a></li>
+      <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+    </ul>
+    <div class="navbar-profile" id="navbarProfile"></div>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="container mt-5">
+  <h2 class="page-title">Identify a Plant</h2>
+  <p class="text-muted mb-4 text-center">
+    Upload a photo of the plant or its part to identify it and get care guidance.
+  </p>
+  
+  <!-- Split Screen Container -->
+  <div class="identification-container" id="identificationContainer">
+    <!-- Upload Section (Left) -->
+    <div class="upload-section" id="uploadSection">
+      <div class="upload-box">
+        <div class="upload-icon">📸</div>
+        <p class="mb-3">
+          Upload a clear image of the plant leaf, flower, or stem.
+        </p>
+        <div class="file-input-wrapper">
+          <input type="file" id="plantImageInput" class="form-control form-control-sm mb-3" accept="image/*">
+        </div>
+        <button class="btn btn-success" onclick="identifyPlant()">
+          <span id="identifyBtnText">Identify Plant</span>
+          <span id="identifyBtnLoading" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2"></span>Analyzing...
+          </span>
+        </button>
+        <div id="uploadError" class="text-danger mt-2" style="display: none;"></div>
+        
+        <!-- Preview of uploaded image -->
+        <div id="imagePreviewContainer" style="margin-top: 20px; display: none;">
+          <img id="imagePreview" class="uploaded-image-preview" alt="Uploaded plant image">
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section (Right) -->
+    <div class="results-section" id="resultsSection">
+      <div class="result-card" id="resultCard">
+        <!-- Results will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Your Recent Searches Section -->
+  <div class="mt-5" id="recentSearchesContainer" style="display: none;">
+    <h3 class="section-title">Your Recent Searches</h3>
+    <p class="text-center text-muted mb-4">Plants you've recently identified</p>
+    
+    <div class="row g-4" id="recentSearchesGrid">
+      <!-- Recent plant cards will be inserted here -->
+    </div>
+    
+    <div class="text-center mt-4" id="viewAllButtonContainer" style="display: none;">
+      <button class="btn btn-success" onclick="openPlantHistoryModal()">View All History</button>
+    </div>
+  </div>
+
+  <!-- Popular House Plants Section -->
+  <div class="mt-5">
+    <h3 class="section-title">Common House Plants</h3>
+    <p class="text-center text-muted mb-4">Click on any plant to see detailed information</p>
+    
+    <div class="row g-4">
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('snake')">
+            <img src="plants/snake plant.jpg" alt="Snake Plant" class="plant-image">
+            <div class="plant-name">Snake Plant</div>
+            <div class="plant-scientific">Sansevieria trifasciata</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('snake','plants/snake plant.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Snake Plant')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('monstera')">
+            <img src="plants/monstera.jpg" alt="Monstera" class="plant-image">
+            <div class="plant-name">Monstera</div>
+            <div class="plant-scientific">Monstera deliciosa</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('monstera','plants/monstera.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Monstera')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('pothos')">
+            <img src="plants/Golden Pothos.webp" alt="Pothos" class="plant-image">
+            <div class="plant-name">Golden Pothos</div>
+            <div class="plant-scientific">Epipremnum aureum</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('pothos','plants/Golden Pothos.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Golden Pothos')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('spider')">
+            <img src="plants/spider.jpg" alt="Spider Plant" class="plant-image">
+            <div class="plant-name">Spider Plant</div>
+            <div class="plant-scientific">Chlorophytum comosum</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('spider','plants/spider.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Spider Plant')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('peace-lily')">
+            <img src="plants/peace lily.jpg" alt="Peace Lily" class="plant-image">
+            <div class="plant-name">Peace Lily</div>
+            <div class="plant-scientific">Spathiphyllum</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('peace-lily','plants/peace lily.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Peace Lily')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('zz')">
+            <img src="plants/zz.webp" alt="ZZ Plant" class="plant-image">
+            <div class="plant-name">ZZ Plant</div>
+            <div class="plant-scientific">Zamioculcas zamiifolia</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('zz','plants/zz.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('ZZ Plant')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('aloe')">
+            <img src="plants/aloe vera.jpg" alt="Aloe Vera" class="plant-image">
+            <div class="plant-name">Aloe Vera</div>
+            <div class="plant-scientific">Aloe barbadensis</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('aloe','plants/aloe vera.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Aloe Vera')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('tulsi')">
+            <img src="plants/tulsi.webp" alt="Tulsi" class="plant-image">
+            <div class="plant-name">Tulsi (Holy Basil)</div>
+            <div class="plant-scientific">Ocimum sanctum</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('tulsi','plants/tulsi.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Tulsi Holy Basil')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('fiddle')">
+            <img src="plants/fiddle leaf.webp" alt="Fiddle Leaf Fig" class="plant-image">
+            <div class="plant-name">Fiddle Leaf Fig</div>
+            <div class="plant-scientific">Ficus lyrata</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('fiddle','plants/fiddle leaf.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Fiddle Leaf Fig')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('philodendron')">
+            <img src="plants/heartleaf.webp" alt="Philodendron" class="plant-image">
+            <div class="plant-name">Heartleaf Philodendron</div>
+            <div class="plant-scientific">Philodendron hederaceum</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('philodendron','plants/heartleaf.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Heartleaf Philodendron')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('fern')">
+            <img src="plants/bostern fern.webp" alt="Boston Fern" class="plant-image">
+            <div class="plant-name">Boston Fern</div>
+            <div class="plant-scientific">Nephrolepis exaltata</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('fern','plants/bostern fern.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Boston Fern')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('pearls')">
+            <img src="plants/string of pearls.webp" alt="String of Pearls" class="plant-image">
+            <div class="plant-name">String of Pearls</div>
+            <div class="plant-scientific">Senecio rowleyanus</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('pearls','plants/string of pearls.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('String of Pearls')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('calathea')">
+            <img src="plants/calathea  orbifolia.jpg" alt="Calathea" class="plant-image">
+            <div class="plant-name">Calathea Orbifolia</div>
+            <div class="plant-scientific">Calathea orbifolia</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('calathea','plants/calathea  orbifolia.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Calathea Orbifolia')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('bird')">
+            <img src="plants/bird of paradise.jpg" alt="Bird of Paradise" class="plant-image">
+            <div class="plant-name">Bird of Paradise</div>
+            <div class="plant-scientific">Strelitzia reginae</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('bird','plants/bird of paradise.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Bird of Paradise')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('ivy')">
+            <img src="plants/english ivy.webp" alt="English Ivy" class="plant-image">
+            <div class="plant-name">English Ivy</div>
+            <div class="plant-scientific">Hedera helix</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('ivy','plants/english ivy.webp')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('English Ivy')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('money')">
+            <img src="plants/chinease money plant.jpg" alt="Chinese Money Plant" class="plant-image">
+            <div class="plant-name">Chinese Money Plant</div>
+            <div class="plant-scientific">Pilea peperomioides</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('money','plants/chinease money plant.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Chinese Money Plant')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6 d-flex">
+        <div class="plant-card-wrapper w-100">
+          <div class="plant-card" onclick="showPlantInfo('palm')">
+            <img src="plants/Areca Palm.jpg" alt="Areca Palm" class="plant-image">
+            <div class="plant-name">Areca Palm</div>
+            <div class="plant-scientific">Dypsis lutescens</div>
+          </div>
+          <div class="plant-card-buttons">
+            <button class="btn-card-garden" onclick="addToGardenFromCard('palm','plants/Areca Palm.jpg')">🌿 My Garden</button>
+            <button class="btn-card-agent" onclick="openAgentModalForPlant('Areca Palm')">🤖 Agent</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Plant Info Modal -->
+<div class="modal fade" id="plantModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="plantModalTitle"></h5>
+          <small id="plantModalScientific" style="opacity: 0.9;"></small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="plantModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================
+     GREENSPHERE AGENT POPUP MODAL (NEW)
+     ============================================= -->
+<div class="agent-modal-overlay" id="agentModalOverlay" onclick="closeAgentModal(event)">
+  <div class="agent-modal-box" id="agentModalBox">
+    <div class="agent-modal-header">
+      <div class="agent-header-left">
+        <div class="agent-avatar">🤖</div>
+        <div class="agent-header-info">
+          <h4>GreenSphere Agent</h4>
+          <span>Eco-Intelligence &amp; Plant Insights</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="agent-plant-chip" id="agentPlantChip">Loading...</div>
+        <button class="agent-modal-close" onclick="closeAgentModalDirect()"></button>
+      </div>
+    </div>
+
+    <div class="agent-modal-body" id="agentModalBody">
+      <!-- Content injected by JS -->
+    </div>
+
+    <div class="agent-modal-footer">
+      <button class="btn-close-agent" onclick="closeAgentModalDirect()">Close</button>
+      <button class="btn-refresh" id="agentRefreshBtn" onclick="refreshAgentModal()">🔄 Refresh</button>
+    </div>
+  </div>
+</div>
+
+<div class="mb-5 pb-5"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const plantData = {
+  snake: {
+    name: "Snake Plant",
+    scientific: "Sansevieria trifasciata",
+    purposes: ["Air Purification", "Decorative", "Low Maintenance"],
+    suitability: "Perfect for beginners and busy individuals. Thrives in various conditions and requires minimal attention. Ideal for bedrooms as it releases oxygen at night.",
+    soil: "Well-draining cactus or succulent mix. Add perlite or sand to regular potting soil for better drainage. pH level: 5.5-7.5",
+    water: "Water sparingly every 2-3 weeks. Allow soil to dry completely between waterings. Reduce watering in winter to once a month. Overwatering is the main cause of death.",
+    climate: "Temperature: 15-29°C (60-85°F). Tolerates low light but grows best in indirect bright light. Avoid direct sunlight. Low humidity tolerance.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to pets and humans if ingested. Contains saponins that can cause nausea, vomiting, and diarrhea. Keep away from children and pets.",
+    medical: "Removes toxins like formaldehyde, benzene, and xylene from air. Improves indoor air quality and increases oxygen levels, especially at night."
+  },
+  monstera: {
+    name: "Monstera",
+    scientific: "Monstera deliciosa",
+    purposes: ["Decorative", "Statement Plant", "Air Purification"],
+    suitability: "Great for adding tropical vibes to your space. Requires moderate care and space to grow. Best for intermediate plant owners with room for a large plant.",
+    soil: "Rich, well-draining potting mix with peat moss, perlite, and bark. Needs organic matter for nutrition. pH level: 5.5-7.0",
+    water: "Water when top 2-3 inches of soil are dry (weekly in summer, bi-weekly in winter). Prefers slightly moist soil. Mist leaves weekly for humidity.",
+    climate: "Temperature: 18-27°C (65-80°F). Bright, indirect light. Avoid direct sun which burns leaves. High humidity preferred (60%+). Sensitive to cold drafts.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to pets and humans. Contains calcium oxalate crystals causing mouth irritation, drooling, and difficulty swallowing. Keep out of reach.",
+    medical: "Helps humidify air and remove indoor pollutants. Known to reduce stress and improve mood through its lush, tropical appearance."
+  },
+  pothos: {
+    name: "Golden Pothos",
+    scientific: "Epipremnum aureum",
+    purposes: ["Air Purification", "Decorative", "Easy Care", "Trailing Plant"],
+    suitability: "One of the easiest houseplants to grow. Perfect for beginners. Excellent for hanging baskets or climbing on supports. Very forgiving of neglect.",
+    soil: "Standard well-draining potting mix. Can grow in poor soil conditions. Add perlite for extra drainage. pH level: 6.1-6.5",
+    water: "Water when top inch of soil is dry (every 1-2 weeks). Can tolerate occasional missed waterings. Yellow leaves indicate overwatering, brown tips indicate underwatering.",
+    climate: "Temperature: 15-29°C (60-85°F). Thrives in low to bright indirect light. Variegation is more pronounced in brighter light. Average home humidity is fine.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to cats, dogs, and humans if ingested. Contains calcium oxalates causing oral irritation and digestive issues. Handle with care around pets.",
+    medical: "NASA study shows it removes formaldehyde, benzene, and carbon monoxide from air. Improves indoor air quality significantly."
+  },
+  spider: {
+    name: "Spider Plant",
+    scientific: "Chlorophytum comosum",
+    purposes: ["Air Purification", "Easy Care", "Decorative", "Propagation"],
+    suitability: "Extremely easy to care for and propagate. Perfect for beginners. Great for hanging baskets. Produces baby plantlets that can be easily shared.",
+    soil: "Well-draining, all-purpose potting mix. Tolerates various soil types. Add compost for nutrients. pH level: 6.0-7.0",
+    water: "Water when top inch of soil is dry (1-2 times per week). Prefers evenly moist soil during growing season. Reduce watering in winter. Uses fluoride-free water if possible.",
+    climate: "Temperature: 13-24°C (55-75°F). Prefers bright, indirect light but tolerates low light. Moderate humidity. Can handle temperature fluctuations well.",
+    toxicity: "safe",
+    toxicityInfo: "Non-toxic to cats, dogs, and humans. Safe for homes with pets and children. One of the safest houseplants to have around.",
+    medical: "Excellent air purifier removing formaldehyde, xylene, and carbon monoxide. NASA rated it as one of the top air-cleaning plants."
+  },
+  "peace-lily": {
+    name: "Peace Lily",
+    scientific: "Spathiphyllum",
+    purposes: ["Air Purification", "Flowering", "Low Light Tolerance", "Decorative"],
+    suitability: "Great for low-light spaces like offices and bathrooms. Produces elegant white flowers. Good for intermediate plant owners. Plant 'tells' you when it needs water by drooping.",
+    soil: "Rich, loose potting mix with good drainage. Add peat moss and perlite. Prefers slightly acidic soil. pH level: 5.8-6.5",
+    water: "Keep soil consistently moist but not waterlogged. Water weekly or when leaves begin to droop. Mist leaves regularly. Use filtered or distilled water for best results.",
+    climate: "Temperature: 18-27°C (65-80°F). Thrives in low to medium indirect light. High humidity preferred (50%+). Protect from cold drafts and sudden temperature changes.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to pets and humans. Contains calcium oxalate crystals. Can cause severe mouth burning, drooling, and difficulty swallowing. Keep away from children and pets.",
+    medical: "One of the best air-purifying plants. Removes ammonia, benzene, formaldehyde, and trichloroethylene. Increases humidity which helps respiratory health."
+  },
+  zz: {
+    name: "ZZ Plant",
+    scientific: "Zamioculcas zamiifolia",
+    purposes: ["Low Maintenance", "Low Light Tolerance", "Decorative", "Air Purification"],
+    suitability: "Nearly indestructible plant perfect for beginners and frequent travelers. Tolerates neglect extremely well. Great for offices and low-light spaces.",
+    soil: "Well-draining succulent or cactus mix. Add perlite or sand to regular potting soil. Requires excellent drainage. pH level: 6.0-7.0",
+    water: "Water every 2-3 weeks, allowing soil to dry completely between waterings. Very drought tolerant. Stores water in rhizomes. Reduce watering in winter to monthly.",
+    climate: "Temperature: 15-29°C (60-85°F). Tolerates low light but grows faster in bright, indirect light. Low humidity tolerance. Very adaptable to various conditions.",
+    toxicity: "toxic",
+    toxicityInfo: "All parts are toxic to pets and humans. Contains calcium oxalate crystals causing mouth and stomach irritation. Wear gloves when handling and keep away from pets.",
+    medical: "Removes toxins like xylene, toluene, and benzene from air. Studies show it can remove volatile organic compounds effectively."
+  },
+  aloe: {
+    name: "Aloe Vera",
+    scientific: "Aloe barbadensis",
+    purposes: ["Medicinal", "Decorative", "Skin Care", "Low Maintenance"],
+    suitability: "Excellent for those wanting a practical medicinal plant. Easy to care for. Perfect for sunny windowsills. Great for beginners interested in natural remedies.",
+    soil: "Well-draining cactus or succulent mix. Sandy, gritty soil essential. Add perlite or pumice. Poor drainage causes root rot. pH level: 7.0-8.5",
+    water: "Water deeply but infrequently every 2-3 weeks. Allow soil to dry completely between waterings. Water even less in winter. Succulent that stores water in leaves.",
+    climate: "Temperature: 13-27°C (55-80°F). Requires bright, direct sunlight (6+ hours daily). Low humidity preferred. Can tolerate some drought and heat.",
+    toxicity: "toxic",
+    toxicityInfo: "Gel is safe for topical use but latex (yellow layer) is toxic if ingested. Can cause diarrhea and cramps in pets. Keep whole plant away from pets.",
+    medical: "Gel treats burns, cuts, sunburn, and skin irritation. Contains vitamins, enzymes, and amino acids. Anti-inflammatory and moisturizing properties. Used for digestive health when processed properly."
+  },
+  tulsi: {
+    name: "Tulsi (Holy Basil)",
+    scientific: "Ocimum sanctum",
+    purposes: ["Medicinal", "Religious Significance", "Culinary", "Air Purification", "Aromatherapy"],
+    suitability: "Sacred plant in Hindu culture with powerful medicinal properties. Ideal for those interested in herbal medicine and traditional remedies. Requires regular care and pruning.",
+    soil: "Rich, well-draining soil with organic compost. Prefers fertile soil with good moisture retention. Add vermicompost or aged manure. pH level: 6.0-7.5",
+    water: "Keep soil consistently moist but not waterlogged. Water daily in hot weather, every 2-3 days in cooler months. Prefers morning watering. Ensure good drainage to prevent root rot.",
+    climate: "Temperature: 20-35°C (68-95°F). Requires full sun (6-8 hours daily). Thrives in warm, humid climates. Can be grown indoors with sufficient sunlight. Protect from frost.",
+    toxicity: "safe",
+    toxicityInfo: "Generally safe for humans and pets. Traditionally used in Ayurvedic medicine. However, pregnant women should consult a doctor before consuming in large quantities.",
+    medical: "Powerful adaptogen reducing stress and anxiety. Boosts immunity and has anti-bacterial, anti-viral, and anti-fungal properties. Used for respiratory issues, fever, cough, and cold."
+  },
+  fiddle: {
+    name: "Fiddle Leaf Fig",
+    scientific: "Ficus lyrata",
+    purposes: ["Decorative", "Statement Plant", "Air Purification"],
+    suitability: "Trendy statement plant for experienced plant owners. Requires consistent care and conditions. Best for those who can provide stable environment.",
+    soil: "Well-draining, nutrient-rich potting mix. Add peat moss, perlite, and pine bark. Needs good aeration and drainage. pH level: 6.0-7.0",
+    water: "Water when top 2 inches of soil are dry (every 7-10 days). Prefers deep, infrequent watering. Consistent moisture is key.",
+    climate: "Temperature: 18-27°C (65-80°F). Requires bright, indirect light (6+ hours). High humidity preferred (40-60%). Very sensitive to temperature changes and drafts.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to pets and humans. Sap contains irritating compounds causing mouth and stomach irritation. Can cause dermatitis on skin contact.",
+    medical: "Removes formaldehyde, benzene, and trichloroethylene from air. Large leaves increase oxygen production."
+  },
+  philodendron: {
+    name: "Heartleaf Philodendron",
+    scientific: "Philodendron hederaceum",
+    purposes: ["Decorative", "Trailing Plant", "Easy Care", "Air Purification"],
+    suitability: "One of the easiest trailing plants to grow. Perfect for beginners. Great for hanging baskets or climbing. Very forgiving and fast-growing.",
+    soil: "Well-draining, peat-based potting mix. Add perlite for drainage. Prefers rich, loose soil. pH level: 5.5-6.5",
+    water: "Water when top inch of soil is dry (every 7-10 days). Prefers evenly moist soil but tolerates occasional drying.",
+    climate: "Temperature: 18-27°C (65-80°F). Thrives in medium to bright indirect light. Tolerates low light. Moderate humidity preferred.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to pets and humans. Contains calcium oxalate crystals causing oral irritation, drooling, and digestive issues.",
+    medical: "Excellent air purifier removing formaldehyde and VOCs. Increases indoor humidity."
+  },
+  fern: {
+    name: "Boston Fern",
+    scientific: "Nephrolepis exaltata",
+    purposes: ["Decorative", "Air Purification", "Humidity Lover", "Hanging Plant"],
+    suitability: "Great for bathrooms and humid spaces. Suitable for intermediate owners who can maintain humidity. Beautiful cascading fronds. Natural air humidifier.",
+    soil: "Rich, well-draining potting mix with peat moss. Add perlite and compost. Prefers slightly acidic, moisture-retentive soil. pH level: 5.0-5.5",
+    water: "Keep soil consistently moist but not soggy. Water 2-3 times per week in summer, less in winter. Mist daily or use pebble tray for humidity.",
+    climate: "Temperature: 15-24°C (60-75°F). Prefers bright, indirect light. Requires high humidity (50-80%).",
+    toxicity: "safe",
+    toxicityInfo: "Non-toxic to cats, dogs, and humans. Safe for homes with pets and children.",
+    medical: "One of the best air-purifying plants. Removes formaldehyde and xylene. Acts as natural humidifier."
+  },
+  pearls: {
+    name: "String of Pearls",
+    scientific: "Senecio rowleyanus",
+    purposes: ["Decorative", "Succulent", "Hanging Plant", "Unique Appearance"],
+    suitability: "Perfect for hanging baskets and shelves. Best for succulent lovers. Unique bead-like leaves create cascading effect.",
+    soil: "Well-draining succulent or cactus mix. Add sand and perlite. Requires excellent drainage. pH level: 6.0-7.5",
+    water: "Water every 2-3 weeks in summer, monthly in winter. Allow soil to dry completely. Overwatering causes rot.",
+    climate: "Temperature: 13-27°C (55-80°F). Bright, indirect light with some direct sun. Low to moderate humidity.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to cats, dogs, and humans if ingested. Can cause vomiting, diarrhea, and drooling in pets.",
+    medical: "Minimal medicinal properties. Primarily grown for unique ornamental value."
+  },
+  calathea: {
+    name: "Calathea Orbifolia",
+    scientific: "Calathea orbifolia",
+    purposes: ["Decorative", "Air Purification", "Prayer Plant", "Patterned Foliage"],
+    suitability: "For experienced plant owners who can provide high humidity. Stunning foliage with silvery stripes. Leaves fold up at night.",
+    soil: "Rich, well-draining potting mix with peat moss and perlite. Prefers slightly acidic soil. pH level: 6.0-6.5",
+    water: "Keep soil consistently moist. Water when top inch is barely dry. Use filtered water as sensitive to chemicals.",
+    climate: "Temperature: 18-27°C (65-80°F). Bright, indirect light. Requires high humidity (60%+).",
+    toxicity: "safe",
+    toxicityInfo: "Non-toxic to cats, dogs, and humans. Safe for homes with pets and children.",
+    medical: "Excellent air purifier removing benzene and formaldehyde. Increases indoor humidity naturally."
+  },
+  bird: {
+    name: "Bird of Paradise",
+    scientific: "Strelitzia reginae",
+    purposes: ["Decorative", "Statement Plant", "Tropical", "Air Purification"],
+    suitability: "Dramatic tropical plant for experienced growers. Requires space and bright light. Can grow quite large.",
+    soil: "Rich, well-draining potting mix. Add peat moss, perlite, and compost. pH level: 6.0-6.5",
+    water: "Water when top 2 inches of soil are dry (every 5-7 days in summer). Reduce watering in winter.",
+    climate: "Temperature: 18-30°C (65-85°F). Requires very bright light (6+ hours). Moderate to high humidity (50-60%).",
+    toxicity: "toxic",
+    toxicityInfo: "Mildly toxic to pets and humans. Contains tannins that can cause nausea and vomiting if ingested.",
+    medical: "Large leaves produce significant oxygen. Helps purify air and remove toxins."
+  },
+  ivy: {
+    name: "English Ivy",
+    scientific: "Hedera helix",
+    purposes: ["Decorative", "Trailing Plant", "Air Purification", "Climbing"],
+    suitability: "Versatile plant for trailing or climbing. Suitable for intermediate growers. Great for topiary forms.",
+    soil: "Rich, well-draining potting mix. Add perlite and compost. pH level: 6.0-7.8",
+    water: "Keep soil evenly moist. Water when top inch is dry (every 5-7 days). Mist regularly for humidity.",
+    climate: "Temperature: 10-21°C (50-70°F). Prefers bright, indirect light but tolerates low light. Moderate to high humidity.",
+    toxicity: "toxic",
+    toxicityInfo: "Toxic to pets and humans. Contains triterpenoid saponins causing vomiting, diarrhea, and skin irritation.",
+    medical: "One of NASA's top air-purifying plants. Removes formaldehyde, benzene, mold, and bacteria from air."
+  },
+  money: {
+    name: "Chinese Money Plant",
+    scientific: "Pilea peperomioides",
+    purposes: ["Decorative", "Easy Propagation", "Good Luck Symbol", "Modern Design"],
+    suitability: "Trendy, easy-care plant perfect for beginners. Round coin-like leaves symbolize good fortune. Produces many baby plants for sharing.",
+    soil: "Well-draining potting mix. Add perlite and peat moss. pH level: 6.0-7.0",
+    water: "Water when top 2 inches of soil are dry (every 7-10 days). Avoid overwatering.",
+    climate: "Temperature: 13-24°C (55-75°F). Bright, indirect light is ideal. Moderate humidity.",
+    toxicity: "safe",
+    toxicityInfo: "Non-toxic to cats, dogs, and humans. Safe for homes with pets and children.",
+    medical: "Removes air pollutants and increases oxygen levels. Primarily grown for decorative and symbolic purposes."
+  },
+  palm: {
+    name: "Areca Palm",
+    scientific: "Dypsis lutescens",
+    purposes: ["Decorative", "Air Purification", "Natural Humidifier", "Tropical"],
+    suitability: "Elegant palm for adding tropical feel. Suitable for those with bright spaces. Natural air humidifier.",
+    soil: "Well-draining, peat-based potting mix. Add perlite and sand. pH level: 6.0-7.5",
+    water: "Keep soil consistently moist during growing season. Water when top inch is dry.",
+    climate: "Temperature: 18-27°C (65-80°F). Bright, indirect light (6-8 hours). Moderate to high humidity (40-60%).",
+    toxicity: "safe",
+    toxicityInfo: "Non-toxic to cats, dogs, and humans. Completely safe for homes with pets and children.",
+    medical: "One of the best air-purifying plants. Removes formaldehyde, xylene, and toluene. Excellent natural humidifier."
+  }
+};
+
+/* =========================================================
+   GLOBAL VARIABLES
+   ========================================================= */
+window.identifiedPlantName = null;
+window.identificationInProgress = false;
+window.DEMO_MODE = false;
+window.currentAgentPlantName = null; // Track which plant the agent modal is showing
+
+const N8N_WEBHOOK_URL = 'https://srijhansi.app.n8n.cloud/webhook-test/93bd3f8c-02bf-47dd-a7eb-7b89ab44dc2e';
+
+let sharedDataReady = false;
+let initCheckCount = 0;
+const maxChecks = 50;
+
+function checkSharedDataReady() {
+  initCheckCount++;
+  if (typeof getCurrentUser === 'function' && typeof addPlantToGarden === 'function' && typeof isPlantInGarden === 'function') {
+    sharedDataReady = true;
+    return true;
+  }
+  if (initCheckCount < maxChecks) { setTimeout(checkSharedDataReady, 50); return false; }
+  return false;
+}
+checkSharedDataReady();
+
+/* =========================================================
+   IMAGE PREVIEW
+   ========================================================= */
+document.getElementById('plantImageInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      document.getElementById('imagePreview').src = event.target.result;
+      document.getElementById('imagePreviewContainer').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+/* =========================================================
+   SHOW PLANT INFO (Common House Plants modal)
+   — Added Agent button alongside Add to Garden
+   ========================================================= */
+function showPlantInfo(plantId) {
+  const plant = plantData[plantId];
+  if (!plant) return;
+  window.currentModalPlant = plant;
+
+  document.getElementById('plantModalTitle').textContent = plant.name;
+  document.getElementById('plantModalScientific').textContent = plant.scientific;
+
+  const purposeBadges = plant.purposes.map(p => `<span class="purpose-badge">${p}</span>`).join('');
+  const toxicityClass = plant.toxicity === 'toxic' ? 'toxicity-warning' : 'toxicity-safe';
+  const toxicityIcon = plant.toxicity === 'toxic' ? '⚠️' : '✅';
+
+  const modalBody = `
+    <div class="info-section">
+      <div class="info-label">🎯 Purpose</div>
+      <div class="info-content">${purposeBadges}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-label">✨ Suitability</div>
+      <div class="info-content">${plant.suitability}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-label">🌱 Soil Guide</div>
+      <div class="info-content">${plant.soil}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-label">💧 Water Guide</div>
+      <div class="info-content">${plant.water}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-label">🌡️ Climate Preferences</div>
+      <div class="info-content">${plant.climate}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-label">${toxicityIcon} Toxicity</div>
+      <div class="info-content">
+        <div class="${toxicityClass}">
+          <strong>${plant.toxicity === 'toxic' ? 'Warning: Toxic Plant' : 'Safe for Pets & Humans'}</strong><br>
+          ${plant.toxicityInfo}
+        </div>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-label">💊 Medical Properties</div>
+      <div class="info-content">${plant.medical}</div>
+    </div>
+
+    <div class="button-group" style="margin-top:20px;">
+      <button class="btn btn-add-garden" style="flex:1; min-width:160px;" onclick="addToGarden(window.currentModalPlant)">
+        🌿 Add to My Garden
+      </button>
+      <button class="btn btn-business-agent" style="flex:1; min-width:160px;" onclick="openAgentModalForPlant('${escapeHtmlAttr(plant.name)}')">
+        🤖 GreenSphere Agent
+      </button>
+    </div>
+  `;
+
+  document.getElementById('plantModalBody').innerHTML = modalBody;
+  const modal = new bootstrap.Modal(document.getElementById('plantModal'));
+  modal.show();
+}
+
+function escapeHtmlAttr(text) {
+  return String(text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+/* =========================================================
+   AGENT MODAL — OPEN / CLOSE
+   ========================================================= */
+function openAgentModalForPlant(plantName) {
+  window.currentAgentPlantName = plantName;
+  document.getElementById('agentPlantChip').textContent = plantName;
+  showAgentModal();
+  fetchAndDisplayAgentInsights(plantName);
+}
+
+function showAgentModal() {
+  const overlay = document.getElementById('agentModalOverlay');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAgentModal(event) {
+  // Only close if click is on the overlay background itself
+  if (event && event.target !== document.getElementById('agentModalOverlay')) return;
+  closeAgentModalDirect();
+}
+
+function closeAgentModalDirect() {
+  const overlay = document.getElementById('agentModalOverlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function refreshAgentModal() {
+  if (window.currentAgentPlantName) {
+    fetchAndDisplayAgentInsights(window.currentAgentPlantName);
+  }
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeAgentModalDirect();
+});
+
+/* =========================================================
+   FETCH & DISPLAY AGENT INSIGHTS (inside popup modal)
+   ========================================================= */
+async function fetchAndDisplayAgentInsights(plantName) {
+  const body = document.getElementById('agentModalBody');
+  const refreshBtn = document.getElementById('agentRefreshBtn');
+
+  // Show loading state
+  body.innerHTML = `
+    <div class="agent-loading-wrapper">
+      <div class="agent-loading-orb">🌿</div>
+      <div class="agent-loading-text">Analyzing eco-insights for <strong>${escapeHtml(plantName)}</strong>...</div>
+      <div class="agent-loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  `;
+  if (refreshBtn) refreshBtn.disabled = true;
+
+  try {
+    const backendUrl = `/api/n8n/business-agent?plant_name=${encodeURIComponent(plantName)}`;
+    const response = await fetch(backendUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+
+    if (!response.ok) throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+
+    const data = await response.json();
+    renderAgentContent(data, plantName, body);
+  } catch (error) {
+    body.innerHTML = `
+      <div class="agent-error-box">
+        <strong>⚠️ Unable to Load Insights</strong>
+        <p>${escapeHtml(error.message || 'Network error. Please try again.')}</p>
+        <small style="color:#888; font-style:italic;">Tip: Check your internet connection and ensure the backend is running.</small>
+      </div>
+    `;
+  } finally {
+    if (refreshBtn) refreshBtn.disabled = false;
+  }
+}
+
+/* =========================================================
+   RENDER AGENT CONTENT IN MODAL
+   ========================================================= */
+function renderAgentContent(data, plantName, container) {
+  let responseData = (data && data.data) ? data.data : data;
+
+  // --- Eco-products format ---
+  if (responseData && responseData.products && Array.isArray(responseData.products)) {
+    container.innerHTML = buildEcoProductsHTML(responseData);
+    return;
+  }
+
+  // --- Plain text / legacy format ---
+  let insights = '';
+  if (typeof data === 'string' && data.trim()) insights = data;
+  else if (data && data.insights && typeof data.insights === 'string') insights = data.insights;
+  else if (data && data.message && typeof data.message === 'string') insights = data.message;
+  else if (data && data.response && typeof data.response === 'string') insights = data.response;
+  else if (data && data.output && typeof data.output === 'string') insights = data.output;
+  else if (data && typeof data === 'object') {
+    for (let k in data) {
+      if (data[k] && typeof data[k] === 'string' && data[k].trim()) { insights = data[k]; break; }
+    }
+  }
+
+  if (!insights) insights = JSON.stringify(data, null, 2);
+
+  container.innerHTML = `
+    <div class="agent-content-section">
+      <h6>🌿 Plant Insights — ${escapeHtml(plantName)}</h6>
+      <div style="line-height:1.8; color:#333;">${formatInsights(insights)}</div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   BUILD ECO-PRODUCTS HTML (for inside modal)
+   ========================================================= */
+function buildEcoProductsHTML(ecoData) {
+  if (!ecoData || !ecoData.products || !Array.isArray(ecoData.products)) {
+    return '<p style="color:#999; padding:20px; text-align:center;">No eco-products data available.</p>';
+  }
+
+  const products = ecoData.products;
+  let html = `
+    <div style="margin-bottom:18px; padding:14px 18px; background:linear-gradient(135deg,#e8f5e9,#f0fff0); border-radius:14px; border-left:4px solid #4caf50;">
+      <p style="margin:0; color:#1b5e20; font-size:0.92rem; line-height:1.6;">
+        Discover sustainable alternatives derived from <strong>${escapeHtml(ecoData.plant_name || 'this plant')}</strong> 
+        that can replace harmful chemicals, synthetic fibers, and plastics across industries.
+      </p>
+    </div>
+  `;
+
+  products.forEach((product, idx) => {
+    const bodyId = `agentEcoProd_${idx}`;
+    html += `
+      <div class="eco-product-card">
+        <div class="eco-product-header" onclick="toggleEcoProduct('${bodyId}', this)">
+          <div>
+            <p class="eco-product-title">🌱 ${escapeHtml(product.product_name || 'Product')}</p>
+            <p class="eco-product-subtitle">Replaces: ${escapeHtml(product.eco_replacement_for || 'N/A')}</p>
+          </div>
+          <span class="eco-product-toggle">▼</span>
+        </div>
+        <div class="eco-product-body" id="${bodyId}">
+          ${buildProductBodyHTML(product, `agentChart_${idx}`)}
+        </div>
+      </div>
+    `;
+  });
+
+  return html;
+}
+
+function buildProductBodyHTML(product, chartId) {
+  let html = '';
+
+  // Description
+  if (product.description) {
+    html += `<div class="info-row"><span class="info-row-label">📝 Description</span><span class="info-row-value">${escapeHtml(product.description)}</span></div>`;
+  }
+
+  // Market price
+  if (product.market_price) {
+    const mp = product.market_price;
+    html += `<div class="info-row"><span class="info-row-label">💰 Market Price</span><span class="info-row-value"><strong>${escapeHtml(mp.average_price || 'N/A')}</strong> ${escapeHtml(mp.price_unit || '')}</span></div>`;
+  }
+
+  // Industrial uses
+  if (product.industrial_uses && product.industrial_uses.length > 0) {
+    html += `<div class="info-row"><span class="info-row-label">🏭 Industrial Uses</span><div class="info-row-value">${product.industrial_uses.map(u => `<span style="display:inline-block;background:#e8f5e9;padding:3px 10px;border-radius:12px;margin:3px 4px 3px 0;font-size:0.82rem;color:#1b5e20;">${escapeHtml(u)}</span>`).join('')}</div></div>`;
+  }
+
+  // Global trade info
+  const trade = product.global_import_export;
+  if (trade) {
+    const trend = (trade.trade_trend || '').toLowerCase();
+    const trendClass = trend.includes('increas') ? 'trend-up' : trend.includes('decreas') ? 'trend-down' : 'trend-flat';
+    html += `
+      <div style="margin:14px 0;">
+        <div style="font-weight:700; color:#2e7d32; font-size:0.85rem; margin-bottom:8px;">🌍 Global Trade</div>
+        <div class="trade-grid">
+          <div class="trade-item"><div class="trade-item-label">Top Exporters</div><div class="trade-item-value">${escapeHtml((trade.major_exporting_countries || []).join(', ') || 'N/A')}</div></div>
+          <div class="trade-item"><div class="trade-item-label">Top Importers</div><div class="trade-item-value">${escapeHtml((trade.major_importing_countries || []).join(', ') || 'N/A')}</div></div>
+          <div class="trade-item"><div class="trade-item-label">Market Value</div><div class="trade-item-value">${escapeHtml(trade.market_value_estimate || 'N/A')}</div></div>
+          <div class="trade-item"><div class="trade-item-label">Trend</div><div class="trade-item-value"><span class="trend-badge ${trendClass}">${escapeHtml(trade.trade_trend || 'N/A')}</span></div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Companies
+  const companies = product.companies_using_product;
+  if (companies && companies.length > 0) {
+    html += `
+      <div style="margin:14px 0;">
+        <div style="font-weight:700; color:#2e7d32; font-size:0.85rem; margin-bottom:8px;">🏢 Companies Using This Product</div>
+        <div style="max-height:180px; overflow-y:auto; border:1px solid #e0f2e0; border-radius:10px;">
+          ${companies.map((c, i) => `
+            <div style="padding:10px 14px; border-bottom:${i < companies.length-1 ? '1px solid #f0f0f0' : 'none'};">
+              <span style="font-weight:700; color:#1b5e20;">${escapeHtml(c.company_name || 'N/A')}</span>
+              <span style="color:#999; font-size:0.8rem;"> (${escapeHtml(c.country || '')})</span>
+              <div style="color:#666; font-size:0.82rem; margin-top:3px;">📌 ${escapeHtml(c.usage || '')}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Enhanced donut chart for top 5 companies
+  const topCompanies = product.top_5_companies_market_share;
+  if (topCompanies && topCompanies.length > 0) {
+    html += buildEnhancedDonutChart(topCompanies, chartId);
+  }
+
+  return html;
+}
+
+/* =========================================================
+   ENHANCED ANIMATED DONUT CHART
+   ========================================================= */
+function buildEnhancedDonutChart(companies, chartId) {
+  const PALETTE = ['#2e7d32','#4caf50','#81c784','#a5d6a7','#66bb6a'];
+  const RADIUS = 54;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  const CX = 90, CY = 90;
+
+  // Normalise percentages to sum exactly 100
+  let total = companies.reduce((s, c) => s + (parseFloat(c.percentage) || 0), 0);
+  if (total <= 0) total = 100;
+
+  let segments = '';
+  let cumulPct = 0;
+  let topCompany = companies[0];
+  let topPct = parseFloat(companies[0]?.percentage) || 0;
+
+  companies.forEach((c, i) => {
+    const pct = (parseFloat(c.percentage) || 0);
+    const normPct = (pct / total) * 100;
+    const length = (CIRCUMFERENCE * normPct) / 100;
+    const gap    = CIRCUMFERENCE - length;
+    const offset = -(CIRCUMFERENCE * cumulPct) / 100;
+
+    segments += `
+      <circle
+        class="donut-segment"
+        cx="${CX}" cy="${CY}" r="${RADIUS}"
+        fill="none"
+        stroke="${PALETTE[i % PALETTE.length]}"
+        stroke-width="22"
+        stroke-dasharray="${length} ${gap}"
+        stroke-dashoffset="${offset}"
+        data-company="${escapeHtml(c.company || c.company_name || 'Company')}"
+        data-pct="${pct.toFixed(1)}"
+        onmouseenter="donutHover(this,'${chartId}_center')"
+        onmouseleave="donutReset(this,'${chartId}_center','${escapeHtml(topCompany.company || '')}','${topPct.toFixed(1)}')"
+      />
+    `;
+    cumulPct += normPct;
+  });
+
+  // Legend items
+  const legendItems = companies.map((c, i) => `
+    <div class="donut-legend-item"
+         onmouseenter="highlightSegment('${chartId}', ${i})"
+         onmouseleave="unhighlightSegments('${chartId}')">
+      <div class="donut-legend-dot" style="background:${PALETTE[i % PALETTE.length]};"></div>
+      <span class="donut-legend-name">${escapeHtml(c.company || c.company_name || 'Company')}</span>
+      <span class="donut-legend-pct">${parseFloat(c.percentage || 0).toFixed(1)}%</span>
+    </div>
+  `).join('');
+
+  return `
+    <div style="margin:16px 0;">
+      <div style="font-weight:700; color:#2e7d32; font-size:0.85rem; margin-bottom:12px;">📊 Top Companies Market Share</div>
+      <div class="donut-chart-wrapper" id="${chartId}_wrapper">
+        <div class="donut-svg-container">
+          <svg width="180" height="180" viewBox="0 0 180 180" id="${chartId}">
+            <!-- Background ring -->
+            <circle cx="${CX}" cy="${CY}" r="${RADIUS}" fill="none" stroke="#e8f5e9" stroke-width="22"/>
+            ${segments}
+          </svg>
+          <div class="donut-center-label" id="${chartId}_center">
+            <span class="center-pct">${topPct.toFixed(0)}%</span>
+            <span class="center-lbl">${escapeHtml((topCompany.company || '').split(' ')[0] || 'Leader')}</span>
+          </div>
+        </div>
+        <div class="donut-legend">${legendItems}</div>
+      </div>
+    </div>
+  `;
+}
+
+function donutHover(circle, centerId) {
+  const center = document.getElementById(centerId);
+  if (center) {
+    center.querySelector('.center-pct').textContent = circle.dataset.pct + '%';
+    center.querySelector('.center-lbl').textContent = circle.dataset.company.split(' ')[0];
+  }
+}
+
+function donutReset(circle, centerId, defaultName, defaultPct) {
+  const center = document.getElementById(centerId);
+  if (center) {
+    center.querySelector('.center-pct').textContent = defaultPct + '%';
+    center.querySelector('.center-lbl').textContent = (defaultName || '').split(' ')[0] || 'Leader';
+  }
+}
+
+function highlightSegment(chartId, idx) {
+  const svg = document.getElementById(chartId);
+  if (!svg) return;
+  const segs = svg.querySelectorAll('.donut-segment');
+  segs.forEach((s, i) => { s.style.opacity = i === idx ? '1' : '0.3'; });
+}
+
+function unhighlightSegments(chartId) {
+  const svg = document.getElementById(chartId);
+  if (!svg) return;
+  svg.querySelectorAll('.donut-segment').forEach(s => { s.style.opacity = '1'; });
+}
+
+/* =========================================================
+   ECO PRODUCT TOGGLE
+   ========================================================= */
+function toggleEcoProduct(bodyId, headerEl) {
+  const body = document.getElementById(bodyId);
+  const toggle = headerEl.querySelector('.eco-product-toggle');
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (toggle) toggle.textContent = isOpen ? '▼' : '▲';
+}
+
+/* =========================================================
+   PLANT IDENTIFICATION
+   ========================================================= */
+async function identifyPlant() {
+  const fileInput = document.getElementById('plantImageInput');
+  const file = fileInput.files[0];
+  const errorDiv = document.getElementById('uploadError');
+  const btnText = document.getElementById('identifyBtnText');
+  const btnLoading = document.getElementById('identifyBtnLoading');
+
+  errorDiv.style.display = 'none';
+  window.identificationInProgress = true;
+  window.identifiedPlantName = null;
+
+  const businessAgentBtn = document.getElementById('businessAgentBtn');
+  if (businessAgentBtn) businessAgentBtn.disabled = true;
+
+  if (!file) { errorDiv.textContent = 'Please select an image first!'; errorDiv.style.display = 'block'; window.identificationInProgress = false; return; }
+  if (!file.type.startsWith('image/')) { errorDiv.textContent = 'Please upload a valid image file!'; errorDiv.style.display = 'block'; window.identificationInProgress = false; return; }
+  if (file.size > 10 * 1024 * 1024) { errorDiv.textContent = 'Image file is too large. Please use an image under 10MB.'; errorDiv.style.display = 'block'; window.identificationInProgress = false; return; }
+
+  btnText.style.display = 'none';
+  btnLoading.style.display = 'inline-block';
+
+  try {
+    const response = await greensphereAPI.identifyPlantFromFile(file);
+    btnText.style.display = 'inline-block';
+    btnLoading.style.display = 'none';
+
+    if (response.success && response.data) {
+      window.identificationInProgress = false;
+      document.getElementById('uploadSection').classList.add('compact');
+      document.getElementById('resultsSection').classList.add('show');
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showIdentifiedPlantInline(response.data);
+      setTimeout(() => {
+        const btn = document.getElementById('businessAgentBtn');
+        if (btn) btn.disabled = false;
+      }, 50);
+      const fileReader = new FileReader();
+      fileReader.onload = function(e) {
+        const base64String = e.target.result.split(',')[1];
+        savePlantToHistory(response.data, base64String, file.name);
+      };
+      fileReader.readAsDataURL(file);
+    } else {
+      errorDiv.textContent = response.message || 'Failed to identify plant. Please try again.';
+      errorDiv.style.display = 'block';
+      window.identificationInProgress = false;
+    }
+  } catch (error) {
+    btnText.style.display = 'inline-block';
+    btnLoading.style.display = 'none';
+    errorDiv.textContent = `Failed to identify plant: ${error.message}`;
+    errorDiv.style.display = 'block';
+    window.identificationInProgress = false;
+  }
+}
+
+function showIdentifiedPlantInline(plantDataObj) {
+  window.currentIdentifiedPlant = plantDataObj;
+  window.identifiedPlantName = plantDataObj.name;
+  window.identificationInProgress = false;
+
+  const commonNamesHtml = (plantDataObj.common_names && plantDataObj.common_names.length > 0) ? plantDataObj.common_names.slice(0, 5).join(', ') : 'Not available';
+  const synonymsHtml = (plantDataObj.synonyms && plantDataObj.synonyms.length > 0) ? plantDataObj.synonyms.slice(0, 3).join(', ') : '';
+  const purposeBadges = (plantDataObj.purposes || []).map(p => `<span class="purpose-badge">${p}</span>`).join('');
+  const taxonomy = plantDataObj.taxonomy || {};
+  const taxonomyHtml = taxonomy.family ? `<strong>Family:</strong> ${taxonomy.family}${taxonomy.genus ? ` | <strong>Genus:</strong> ${taxonomy.genus}` : ''}${taxonomy.order ? ` | <strong>Order:</strong> ${taxonomy.order}` : ''}` : 'Not available';
+  const confidence = plantDataObj.confidence ? `<small style="color: #4caf50; font-weight: 600;">Confidence: ${plantDataObj.confidence}%</small>` : '';
+  const lowConfidenceWarning = plantDataObj.confidence && plantDataObj.confidence <= 40 ? `<div style="padding: 15px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; margin-bottom: 20px;"><strong style="color: #e65100;">⚠️ Low Confidence Result</strong><p style="margin: 8px 0 0 0; color: #e65100; font-size: 0.95rem;">Confidence: ${plantDataObj.confidence}%. Please provide a clearer image.</p></div>` : '';
+  const toxicityIcon = plantDataObj.toxicity === 'toxic' ? '⚠️' : (plantDataObj.toxicity === 'safe' ? '✅' : (plantDataObj.toxicity === 'caution' ? '⚡' : '❓'));
+  const toxicityLabel = plantDataObj.toxicity === 'toxic' ? 'Toxic - Handle with Care!' : (plantDataObj.toxicity === 'safe' ? 'Safe for Pets & Humans' : (plantDataObj.toxicity === 'caution' ? 'Use Caution' : 'Unknown'));
+  const toxicityBg = plantDataObj.toxicity === 'toxic' ? 'background: #ffebee; border-left: 4px solid #f44336;' : (plantDataObj.toxicity === 'safe' ? 'background: #e8f5e9; border-left: 4px solid #4caf50;' : 'background: #fff3e0; border-left: 4px solid #ff9800;');
+  const similarImages = (plantDataObj.similar_images || []).slice(0, 3).map(img => `<img src="${img.url_small || img.url}" alt="Similar plant" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin:4px;cursor:pointer;" onclick="window.open('${img.url}','_blank')">`).join('');
+  const wikiLinkHtml = plantDataObj.wiki_url ? `<a href="${plantDataObj.wiki_url}" target="_blank" class="btn btn-outline-primary btn-sm">📚 Wikipedia</a>` : '';
+  const gbifLinkHtml = plantDataObj.gbif_id ? `<a href="https://www.gbif.org/species/${plantDataObj.gbif_id}" target="_blank" class="btn btn-outline-success btn-sm">🌍 GBIF</a>` : '';
+  const inatLinkHtml = plantDataObj.inaturalist_id ? `<a href="https://www.inaturalist.org/taxa/${plantDataObj.inaturalist_id}" target="_blank" class="btn btn-outline-warning btn-sm">🦋 iNaturalist</a>` : '';
+
+  const resultHTML = `
+    <h4>${plantDataObj.name}</h4>
+    <p class="scientific-name">${plantDataObj.scientific}</p>
+    ${confidence ? `<div style="text-align:center;padding:12px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:8px;margin-bottom:20px;">${confidence}</div>` : ''}
+    ${lowConfidenceWarning}
+    <div class="info-section"><div class="info-label">🏷️ Common Names</div><div class="info-content">${commonNamesHtml}</div></div>
+    ${synonymsHtml ? `<div class="info-section"><div class="info-label">📝 Also Known As</div><div class="info-content" style="font-style:italic;color:#666;">${synonymsHtml}</div></div>` : ''}
+    <div class="info-section"><div class="info-label">📖 Overview</div><div class="info-content">${plantDataObj.description || 'No description available'}</div></div>
+    <div class="info-section"><div class="info-label">${toxicityIcon} Toxicity</div><div class="info-content"><div style="padding:10px;border-radius:6px;${toxicityBg}"><strong>${toxicityLabel}</strong><br><small>${plantDataObj.toxicityInfo}</small></div></div></div>
+    <div class="info-section"><div class="info-label">🎯 Uses & Properties</div><div class="info-content">${purposeBadges || '<span class="purpose-badge">Ornamental</span>'}</div></div>
+    ${plantDataObj.common_uses ? `<div class="info-section"><div class="info-label">🏠 Common Uses</div><div class="info-content">${plantDataObj.common_uses}</div></div>` : ''}
+    ${plantDataObj.cultural_significance ? `<div class="info-section"><div class="info-label">🎭 Cultural Significance</div><div class="info-content">${plantDataObj.cultural_significance}</div></div>` : ''}
+    <div class="info-section"><div class="info-label">☀️ Light Requirements</div><div class="info-content">${plantDataObj.best_light || 'Indirect sunlight recommended'}</div></div>
+    <div class="info-section"><div class="info-label">🌱 Soil Type</div><div class="info-content">${plantDataObj.best_soil || 'Well-draining potting mix'}</div></div>
+    <div class="info-section"><div class="info-label">💧 Watering</div><div class="info-content">${plantDataObj.water || 'Water when top inch of soil is dry'}</div></div>
+    <div class="info-section"><div class="info-label">🧬 Taxonomy</div><div class="info-content">${taxonomyHtml}</div></div>
+    ${similarImages ? `<div class="info-section"><div class="info-label">🖼️ Similar Images</div><div class="info-content" style="display:flex;flex-wrap:wrap;gap:8px;">${similarImages}</div></div>` : ''}
+    <div style="text-align:center;margin-top:15px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      ${wikiLinkHtml}${gbifLinkHtml}${inatLinkHtml}
+    </div>
+    <div class="button-group">
+      <button class="btn btn-add-garden" onclick="addToGarden(window.currentIdentifiedPlant)">
+        🌿 Add to My Garden
+      </button>
+      <button class="btn btn-business-agent" id="businessAgentBtn" onclick="callBusinessAgent()">
+        🤖 GreenSphere Agent
+      </button>
+    </div>
+  `;
+  document.getElementById('resultCard').innerHTML = resultHTML;
+
+  const businessAgentBtn = document.getElementById('businessAgentBtn');
+  if (businessAgentBtn) {
+    businessAgentBtn.disabled = window.identificationInProgress;
+  }
+}
+
+/* =========================================================
+   CALL BUSINESS AGENT (from identified plant result)
+   — Now opens popup instead of showing content below
+   ========================================================= */
+async function callBusinessAgent() {
+  if (!window.identifiedPlantName) {
+    alert('Error: Plant name not found. Please identify a plant first.');
+    return;
+  }
+  openAgentModalForPlant(window.identifiedPlantName);
+}
+
+/* =========================================================
+   ADD TO GARDEN FROM CARD (Common House Plants)
+   Fetches the local plant image → converts to base64 → saves
+   ========================================================= */
+async function addToGardenFromCard(plantId, imagePath) {
+  const plant = plantData[plantId];
+  if (!plant) { alert('Plant data not found.'); return; }
+
+  let user;
+  try {
+    user = JSON.parse(localStorage.getItem('currentUser'));
+  } catch(e) {}
+  if (!user) { alert('Please login first to add plants to your garden'); return; }
+  if (!user.id) { alert('Error: User ID not found. Please login again.'); return; }
+
+  const gardenPlantData = {
+    user_id: user.id,
+    plant_name: plant.name,
+    scientific_name: plant.scientific || '',
+    watering_capacity: plant.water || 'Regular watering',
+    soil_type: plant.soil || 'Well-draining soil',
+    sunlight_requirements: plant.climate || 'Indirect light',
+    temperature_range: 'Room temperature (18-25°C)',
+    humidity_level: 'Moderate (40-60%)',
+    fertilizer_needs: 'Monthly during growing season',
+    image_filename: imagePath.split('/').pop(),
+    plant_info: JSON.stringify({
+      description: '',
+      toxicity: plant.toxicity || '',
+      purposes: plant.purposes || [],
+      medical: plant.medical || '',
+      common_names: [],
+      image_url: imagePath,
+      confidence: 100
+    })
+  };
+
+  // Fetch the local image and convert to base64
+  try {
+    const imgResponse = await fetch(imagePath);
+    const blob = await imgResponse.blob();
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    gardenPlantData.image_base64 = base64;
+  } catch(e) {
+    console.warn('Could not fetch plant image, saving without image:', e);
+  }
+
+  await saveGardenPlantToDatabase(user.id, gardenPlantData);
+}
+
+/* =========================================================
+   ADD TO GARDEN (from identified plant result / modal)
+   ========================================================= */
+function addToGarden(plantDataObj) {
+  if (!plantDataObj) { alert('Error: Plant data not found. Please try again.'); return; }
+
+  let user;
+  try {
+    const currentUserStr = localStorage.getItem('currentUser');
+    user = currentUserStr ? JSON.parse(currentUserStr) : null;
+  } catch (e) { alert('Error getting user information. Please try again.'); return; }
+
+  if (!user) { alert('Please login first to add plants to your garden'); return; }
+  if (!user.id) { alert('Error: User ID not found. Please login again.'); return; }
+
+  const fileInput = document.getElementById('plantImageInput');
+  const file = fileInput ? fileInput.files[0] : null;
+
+  const gardenPlantData = {
+    user_id: user.id,
+    plant_name: plantDataObj.name || 'Unknown Plant',
+    scientific_name: plantDataObj.scientific_name || plantDataObj.scientific || '',
+    watering_capacity: plantDataObj.water || plantDataObj.best_watering || 'Regular watering',
+    soil_type: plantDataObj.best_soil || plantDataObj.soil || 'Well-draining soil',
+    sunlight_requirements: plantDataObj.best_light || plantDataObj.climate || 'Indirect light',
+    temperature_range: plantDataObj.temperature || 'Room temperature (18-25°C)',
+    humidity_level: plantDataObj.humidity || 'Moderate (40-60%)',
+    fertilizer_needs: plantDataObj.fertilizer || 'Monthly during growing season',
+    image_filename: file ? file.name : null,
+    plant_info: JSON.stringify({
+      description: plantDataObj.description || '',
+      toxicity: plantDataObj.toxicity || '',
+      purposes: plantDataObj.purposes || [],
+      cultural_significance: plantDataObj.cultural_significance || '',
+      medical: plantDataObj.medical || '',
+      common_names: plantDataObj.common_names || [],
+      image_url: plantDataObj.image_url || '',
+      confidence: plantDataObj.confidence || 0
+    })
+  };
+
+  if (file) {
+    const fileReader = new FileReader();
+    fileReader.onload = function(e) {
+      gardenPlantData.image_base64 = e.target.result.split(',')[1];
+      saveGardenPlantToDatabase(user.id, gardenPlantData);
+    };
+    fileReader.onerror = function() { saveGardenPlantToDatabase(user.id, gardenPlantData); };
+    fileReader.readAsDataURL(file);
+  } else if (plantDataObj.image_url) {
+    // Try to fetch the image from URL and convert to base64
+    fetch(plantDataObj.image_url)
+      .then(r => r.blob())
+      .then(blob => new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result.split(',')[1]);
+        fr.onerror = rej;
+        fr.readAsDataURL(blob);
+      }))
+      .then(b64 => { gardenPlantData.image_base64 = b64; saveGardenPlantToDatabase(user.id, gardenPlantData); })
+      .catch(() => saveGardenPlantToDatabase(user.id, gardenPlantData));
+  } else {
+    saveGardenPlantToDatabase(user.id, gardenPlantData);
+  }
+}
+
+async function saveGardenPlantToDatabase(userId, plantDataObj) {
+  try {
+    const response = await fetch('/api/garden/garden/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(plantDataObj)
+    });
+    const result = await response.json();
+    if (result.success) {
+      alert(`"${plantDataObj.plant_name}" has been added to your garden! 🎉\n\nVisit "My Garden" to manage your plants.`);
+      try {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('plantModal'));
+        if (modal) modal.hide();
+      } catch(e) {}
+    } else {
+      alert(`Error: ${result.message}`);
+    }
+  } catch (error) {
+    alert('Error adding plant to garden: ' + error.message);
+  }
+}
+
+/* =========================================================
+   TESTING FUNCTION
+   ========================================================= */
+window.testGreenSphereAgent = async function(plantName = 'Spider Plant') {
+  openAgentModalForPlant(plantName);
+};
+
+/* =========================================================
+   FORMAT INSIGHTS (text / JSON → HTML)
+   ========================================================= */
+function formatInsights(insights) {
+  try {
+    let insightsData = insights;
+    if (typeof insights === 'string' && (insights.trim().startsWith('{') || insights.trim().startsWith('['))) {
+      try { insightsData = JSON.parse(insights); } catch(e) {}
+    }
+    if (typeof insightsData === 'object') {
+      let html = '';
+      if (Array.isArray(insightsData)) {
+        html = insightsData.map(item => typeof item === 'object' ? `<div style="margin:10px 0;padding:10px;background:#f9f9f9;border-left:3px solid #4CAF50;">${Object.entries(item).map(([k,v])=>`<p><strong>${escapeHtml(String(k))}:</strong> ${escapeHtml(String(v))}</p>`).join('')}</div>` : `<p style="margin:8px 0;line-height:1.6;">${escapeHtml(String(item))}</p>`).join('');
+      } else {
+        html = Object.entries(insightsData).map(([key, value]) => {
+          const dk = key.replace(/_/g,' ').replace(/^./,s=>s.toUpperCase());
+          if (Array.isArray(value)) return `<div style="margin:15px 0;"><p style="font-weight:bold;color:#1976D2;margin-bottom:10px;">${escapeHtml(dk)}:</p><div style="padding-left:15px;border-left:3px solid #4CAF50;">${value.map(i=>`<p style="margin:8px 0;line-height:1.6;">${escapeHtml(String(i))}</p>`).join('')}</div></div>`;
+          return `<p style="margin:10px 0;line-height:1.6;"><strong>${escapeHtml(dk)}:</strong> ${escapeHtml(String(value))}</p>`;
+        }).join('');
+      }
+      return html || '<p>No insights available at this time.</p>';
+    }
+    if (typeof insightsData === 'string' && insightsData.trim()) {
+      if (/<[^>]*>/.test(insightsData)) return insightsData;
+      return insightsData.split('\n').filter(l=>l.trim()).map(line => {
+        line = line.trim();
+        if (line.includes(':')) {
+          const [key,...rest] = line.split(':');
+          return `<p style="margin:10px 0;line-height:1.6;"><strong>${escapeHtml(key.trim())}:</strong> ${escapeHtml(rest.join(':').trim())}</p>`;
+        }
+        return `<p style="margin:8px 0;line-height:1.6;">${escapeHtml(line)}</p>`;
+      }).join('');
+    }
+    return '<p>No insights available at this time.</p>';
+  } catch(e) {
+    return `<p style="color:red;">Error formatting insights: ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
+/* =========================================================
+   PLANT HISTORY
+   ========================================================= */
+function formatPlantHistoryInfo(plantInfoJson) {
+  try {
+    if (!plantInfoJson) return '<p style="color:#999;">No additional information available</p>';
+    let plantInfo = typeof plantInfoJson === 'string' ? JSON.parse(plantInfoJson) : plantInfoJson;
+    let html = '';
+    if (plantInfo.common_names && plantInfo.common_names.length > 0) {
+      html += `<div style="margin-bottom:12px;"><div style="font-weight:bold;color:#2d5016;margin-bottom:4px;">🌱 Common Names</div><div style="padding-left:12px;">${plantInfo.common_names.map(n=>`<span style="display:inline-block;background:#e8f5e9;padding:4px 10px;border-radius:4px;margin:3px 3px 3px 0;font-size:0.9em;">${escapeHtml(n)}</span>`).join('')}</div></div>`;
+    }
+    if (plantInfo.purposes && plantInfo.purposes.length > 0) {
+      html += `<div style="margin-bottom:12px;"><div style="font-weight:bold;color:#2d5016;margin-bottom:4px;">🎯 Purposes</div><div style="padding-left:12px;">${plantInfo.purposes.map(p=>`<span style="background:#fff9c4;padding:4px 10px;border-radius:4px;font-size:0.9em;border-left:2px solid #fbc02d;display:inline-block;margin:3px;">${escapeHtml(p)}</span>`).join('')}</div></div>`;
+    }
+    return html || '<p style="color:#999;">No plant information available</p>';
+  } catch(e) { return '<p style="color:#999;">Error displaying plant information</p>'; }
+}
+
+async function loadRecentPlantHistory() {
+  try {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+    const response = await fetch(`/api/plants/history/recent/${currentUser.id}?count=4`);
+    if (!response.ok) return;
+    const result = await response.json();
+    if (!result.success || !result.data || result.data.length === 0) return;
+    displayRecentPlants(result.data, result.total);
+  } catch(e) { console.error('Error loading plant history:', e); }
+}
+
+function displayRecentPlants(plants, totalCount) {
+  const container = document.getElementById('recentSearchesContainer');
+  const grid = document.getElementById('recentSearchesGrid');
+  const viewAllButton = document.getElementById('viewAllButtonContainer');
+  if (!container || !grid) return;
+  grid.innerHTML = '';
+  plants.forEach(plant => {
+    const card = document.createElement('div');
+    card.className = 'col-md-3 col-sm-6';
+    card.innerHTML = `<div class="plant-card"><div style="position:relative;margin-bottom:15px;"><img src="data:image/jpeg;base64,${plant.image_base64||''}" alt="${plant.plant_name}" class="plant-image" onerror="this.src='plants/placeholder.jpg'"><span class="badge bg-success" style="position:absolute;top:10px;right:10px;">${Math.round(plant.confidence||0)}%</span></div><div class="plant-name">${plant.plant_name}</div><div class="plant-scientific">${plant.scientific_name||''}</div><small class="text-muted d-block mb-3">${new Date(plant.identified_at).toLocaleDateString()}</small><button class="btn btn-sm btn-outline-success w-100" onclick="showPlantHistoryInfo(${plant.id})">View Info</button></div>`;
+    grid.appendChild(card);
+  });
+  container.style.display = 'block';
+  viewAllButton.style.display = totalCount > 4 ? 'block' : 'none';
+}
+
+async function showPlantHistoryInfo(plantId) {
+  try {
+    const response = await fetch(`/api/plants/history/${plantId}`);
+    if (!response.ok) { alert('Failed to load plant details'); return; }
+    const result = await response.json();
+    if (!result.success || !result.data) { alert('Plant not found'); return; }
+    const plant = result.data;
+    document.getElementById('plantInfoModalBody').innerHTML = `<div style="text-align:center;"><img src="data:image/jpeg;base64,${plant.image_base64||''}" alt="${plant.plant_name}" style="max-width:100%;max-height:300px;border-radius:10px;margin-bottom:20px;" onerror="this.src='plants/placeholder.jpg'"></div><div style="margin-bottom:15px;"><h4>${plant.plant_name}</h4><p style="font-style:italic;color:#666;">${plant.scientific_name||'Unknown'}</p><span class="badge bg-success" style="font-size:1rem;">Confidence: ${Math.round(plant.confidence||0)}%</span></div><div style="background:#f0f8f5;padding:15px;border-radius:8px;margin-bottom:15px;"><h6>📋 Plant Information</h6>${formatPlantHistoryInfo(plant.plant_info)}</div><div style="color:#666;font-size:0.9rem;"><p><strong>Identified on:</strong> ${new Date(plant.identified_at).toLocaleString()}</p></div>`;
+    new bootstrap.Modal(document.getElementById('plantInfoModal')).show();
+    window.currentHistoryPlant = plant;
+  } catch(e) { alert('Error loading plant details'); }
+}
+
+function addPlantInfoToGarden() {
+  const plant = window.currentHistoryPlant;
+  if (!plant) { alert('No plant selected'); return; }
+  const plantDataObj = { name: plant.plant_name, scientific: plant.scientific_name, purposes: [], suitability: '', soil: '', water: '', climate: '', toxicity: 'toxic', toxicityInfo: '', medical: '' };
+  try {
+    if (typeof addPlantToGarden === 'function') {
+      addPlantToGarden(plantDataObj);
+      const modal = bootstrap.Modal.getInstance(document.getElementById('plantInfoModal'));
+      if (modal) modal.hide();
+    } else { alert('Garden function not available'); }
+  } catch(e) { alert('Error adding plant to garden'); }
+}
+
+async function openPlantHistoryModal() {
+  try {
+    const currentUser = getCurrentUser();
+    if (!currentUser) { alert('Please login first'); return; }
+    const response = await fetch(`/api/plants/history/user/${currentUser.id}`);
+    if (!response.ok) { alert('Failed to load plant history'); return; }
+    const result = await response.json();
+    if (!result.success || !result.data) { alert('No plant history found'); return; }
+    const historyList = document.getElementById('plantHistoryList');
+    if (result.data.length === 0) { historyList.innerHTML = '<p class="text-center text-muted">No plant identifications yet</p>'; }
+    else {
+      historyList.innerHTML = `<div class="table-responsive"><table class="table table-hover"><thead class="table-light"><tr><th>Plant Name</th><th>Scientific Name</th><th>Confidence</th><th>Date</th><th>Action</th></tr></thead><tbody>${result.data.map(plant=>`<tr><td><strong>${plant.plant_name}</strong></td><td style="font-style:italic;color:#666;">${plant.scientific_name||'-'}</td><td><span class="badge bg-success">${Math.round(plant.confidence||0)}%</span></td><td>${new Date(plant.identified_at).toLocaleDateString()}</td><td><button class="btn btn-sm btn-outline-success" onclick="showPlantHistoryInfo(${plant.id})">View</button></td></tr>`).join('')}</tbody></table></div>`;
+    }
+    new bootstrap.Modal(document.getElementById('plantHistoryModal')).show();
+  } catch(e) { alert('Error loading plant history'); }
+}
+
+async function savePlantToHistory(plantDataObj, imageBase64, imageFilename) {
+  try {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+    const payload = { user_id: currentUser.id, plant_name: plantDataObj.name || '', scientific_name: plantDataObj.scientific || '', confidence: plantDataObj.confidence || 0, image_base64: imageBase64, image_filename: imageFilename || 'plant.jpg', plant_info: JSON.stringify({ common_names: plantDataObj.common_names || [], taxonomy: plantDataObj.taxonomy || {}, common_uses: plantDataObj.common_uses || '', purposes: plantDataObj.purposes || [] }) };
+    const response = await fetch('/api/plants/history/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (response.ok) loadRecentPlantHistory();
+  } catch(e) { console.error('Error saving plant to history:', e); }
+}
+
+/* =========================================================
+   PROFILE / NAVBAR
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', function() {
+  loadRecentPlantHistory();
+  loadProfileImageInNavbar();
+});
+
+function loadProfileImageInNavbar() {
+  const profileContainer = document.getElementById('navbarProfile');
+  if (!profileContainer) return;
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) { profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Login</a>'; return; }
+    const profileImageUrl = localStorage.getItem('profileImageUrl');
+    const userName = currentUser.name || 'User';
+    const userEmail = currentUser.email || '';
+    const userPhone = currentUser.phone || 'Not provided';
+    const userCity = currentUser.city || 'Not specified';
+    const userState = currentUser.state || '';
+    const initials = userName.split(' ').map(n=>n.charAt(0)).join('').toUpperCase();
+    const avatarHtml = profileImageUrl ? `<img src="${profileImageUrl}" alt="${userName}" onerror="this.src='https://via.placeholder.com/40x40?text=${initials}'">` : `<div style="background:linear-gradient(135deg,#66bb6a,#2e7d32);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.9rem;width:100%;height:100%;">${initials}</div>`;
+    const avatarHtmlDropdown = profileImageUrl ? `<img src="${profileImageUrl}" alt="${userName}">` : `<div style="background:linear-gradient(135deg,#66bb6a,#2e7d32);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.2rem;width:100%;height:100%;">${initials}</div>`;
+    profileContainer.innerHTML = `<div class="profile-image-navbar" id="profileIconToggle" onclick="toggleProfileDropdown(event)">${avatarHtml}</div><span class="nav-link" style="margin-left:0;cursor:pointer;" onclick="toggleProfileDropdown(event)">${userName}</span><div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()"><div class="profile-dropdown-header"><div class="profile-dropdown-avatar">${avatarHtmlDropdown}</div><div class="profile-dropdown-info"><div class="profile-dropdown-name">${userName}</div><div class="profile-dropdown-email">${userEmail}</div></div></div><div class="profile-dropdown-body"><div class="profile-detail-row"><span class="profile-detail-label">📞 Phone</span><span class="profile-detail-value">${userPhone}</span></div><div class="profile-detail-row"><span class="profile-detail-label">📍 Location</span><span class="profile-detail-value">${userCity}${userState?', '+userState:''}</span></div><div class="profile-detail-row"><span class="profile-detail-label">✅ Status</span><span class="profile-detail-value" style="color:#4caf50;font-weight:600;">Verified</span></div></div><div class="profile-dropdown-footer"><a href="profile.html" class="profile-btn-view">View Profile</a><a href="#" class="profile-btn-logout" onclick="logoutUser(event)">Logout</a></div></div>`;
+    document.addEventListener('click', function(event) {
+      const dd = document.getElementById('profileDropdown');
+      const pc = document.getElementById('navbarProfile');
+      if (dd && pc && !pc.contains(event.target)) dd.classList.remove('active');
+    });
+  } catch(e) { profileContainer.innerHTML = '<a href="profile.html" class="nav-link">Profile</a>'; }
+}
+
+function toggleProfileDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById('profileDropdown');
+  if (dropdown) dropdown.classList.toggle('active');
+}
+
+function logoutUser(event) {
+  event.preventDefault();
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('profileImageUrl');
+    window.location.href = 'index.html';
+  }
+}
+</script>
+<script src="shared-data.js"></script>
+<script src="api-client.js"></script>
+
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center"><span class="footer-logo">🌿 GreenSphere</span></div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+<!-- Plant Info Modal (history) -->
+<div class="modal fade" id="plantInfoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Plant Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="plantInfoModalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" onclick="addPlantInfoToGarden()">Add to Garden</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Plant History Modal -->
+<div class="modal fade" id="plantHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Plant Identification History</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="plantHistoryList" style="max-height:500px;overflow-y:auto;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>    
+</div>
+</body>
+</html>

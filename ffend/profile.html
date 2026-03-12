@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Profile | GreenSphere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      background: rgba(255,255,255,0.95) !important;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 0.8rem 0;
+      position: relative;
+      z-index: 10000;
+    }
+    .navbar-brand { font-weight: 700; font-size: 1.3rem; color: #2e7d32 !important; display: flex; align-items: center; gap: 6px; }
+    .navbar-brand::before { content: "🌿"; font-size: 1.5rem; }
+    .nav-link { color: #555 !important; font-weight: 500; font-size: 0.95rem; transition: color 0.3s; margin: 0 6px; }
+    .nav-link:hover { color: #2e7d32 !important; }
+
+    /* ── Navbar profile ── */
+    .navbar-profile {
+      display: flex; align-items: center; gap: 15px;
+      margin-left: 20px; padding-left: 20px;
+      border-left: 1px solid #e0e0e0;
+      position: relative;
+    }
+    .profile-image-navbar {
+      width: 40px; height: 40px; border-radius: 50%;
+      overflow: hidden; border: 2px solid #2e7d32;
+      cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .profile-image-navbar:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(46,125,50,0.3); }
+    .profile-image-navbar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-dropdown {
+      position: fixed; top: 65px; right: 10px;
+      background: white; border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(46,125,50,0.2);
+      min-width: 300px; display: none; z-index: 999999;
+      border: 1px solid #e0e0e0;
+      animation: slideDown 0.25s ease-out;
+    }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .profile-dropdown.active { display: block; }
+    .profile-dropdown-header { padding: 18px 20px; background: linear-gradient(135deg,#66bb6a,#2e7d32); color: white; border-radius: 11px 11px 0 0; display: flex; align-items: center; gap: 14px; }
+    .profile-dropdown-avatar { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid white; flex-shrink: 0; }
+    .profile-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-dropdown-name { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
+    .profile-dropdown-email { font-size: 0.82rem; opacity: 0.9; }
+    .profile-dropdown-body { padding: 14px 20px; }
+    .profile-detail-row { padding: 9px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .profile-detail-row:last-child { border-bottom: none; }
+    .profile-detail-label { font-weight: 600; color: #666; font-size: 0.88rem; }
+    .profile-detail-value { color: #333; font-size: 0.88rem; text-align: right; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-dropdown-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; }
+    .profile-dropdown-footer a { flex:1; padding:9px; text-align:center; border-radius:8px; text-decoration:none; font-weight:600; font-size:0.88rem; transition:all 0.2s; }
+    .profile-btn-view { background:linear-gradient(135deg,#66bb6a,#2e7d32); color:white; }
+    .profile-btn-view:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(46,125,50,0.3); color:white; text-decoration:none; }
+    .profile-btn-logout { background:#f5f5f5; color:#f44336; border:1px solid #f0f0f0; }
+    .profile-btn-logout:hover { background:#ffebee; text-decoration:none; }
+
+    /* ── Page layout ── */
+    .profile-container { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
+
+    /* ── Profile header banner ── */
+    .profile-header {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      color: white; padding: 30px 30px; border-radius: 16px;
+      margin-bottom: 30px; box-shadow: 0 8px 30px rgba(46,125,50,0.2);
+    }
+    .profile-header-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+    }
+    .profile-header h2 { font-weight: 700; font-size: 1.6rem; margin-bottom: 3px; }
+    .user-email-text { opacity: 0.85; font-size: 0.93rem; }
+
+    .btn-edit-profile {
+      background: white; color: #2e7d32;
+      border: 1.5px solid white; padding: 8px 18px;
+      border-radius: 8px; font-weight: 600; font-size: 0.88rem;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-edit-profile:hover { background: #e8f5e9; }
+
+    /* ── Info tiles ── */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .info-item { background: rgba(255,255,255,0.13); padding: 12px 15px; border-radius: 10px; border-left: 3px solid #81c784; }
+    .info-label { font-size: 0.78rem; opacity: 0.8; margin-bottom: 4px; }
+    .info-value { font-weight: 600; font-size: 0.92rem; word-break: break-word; }
+
+    /* ── EDIT MODAL ── */
+    .edit-modal-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 99998;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .edit-modal-overlay.active { display: flex; }
+
+    .edit-modal {
+      background: white; border-radius: 16px; padding: 32px;
+      width: 90%; max-width: 560px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: modalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.88) translateY(-16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+    .edit-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #f0f0f0;
+    }
+    .edit-modal-title { color: #2e7d32; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .edit-modal-close {
+      background: #f5f5f5; border: none; font-size: 1rem; color: #666;
+      cursor: pointer; width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .edit-modal-close:hover { background: #ffebee; color: #f44336; }
+
+    .edit-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .edit-field { display: flex; flex-direction: column; gap: 6px; }
+    .edit-field.full-row { grid-column: 1 / -1; }
+    .edit-field label { font-size: 0.75rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.6px; }
+    .edit-field input {
+      padding: 10px 13px; border: 1.5px solid #e0e0e0; border-radius: 9px;
+      font-size: 0.93rem; color: #333; transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%; background: #fafafa;
+    }
+    .edit-field input:focus { outline: none; border-color: #2e7d32; box-shadow: 0 0 0 3px rgba(46,125,50,0.12); background: #f9fffe; }
+    .edit-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+    .btn-cancel-edit { padding: 10px 22px; border-radius: 9px; border: 1.5px solid #ddd; background: #f5f5f5; color: #555; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+    .btn-cancel-edit:hover { background: #eee; }
+    .btn-save-edit { padding: 10px 26px; border-radius: 9px; border: none; background: linear-gradient(135deg,#66bb6a,#2e7d32); color: white; font-weight: 700; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 10px rgba(46,125,50,0.25); transition: all 0.2s; }
+    .btn-save-edit:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(46,125,50,0.38); }
+
+    /* ── Save toast ── */
+    .save-toast { display: none; position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #2e7d32; color: white; padding: 11px 26px; border-radius: 24px; font-weight: 600; font-size: 0.93rem; z-index: 99999; box-shadow: 0 6px 20px rgba(46,125,50,0.4); }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #ddd; }
+    .tab-btn { padding: 12px 20px; border: none; background: transparent; font-weight: 600; color: #666; cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent; position: relative; bottom: -2px; }
+    .tab-btn.active { color: #2e7d32; border-bottom-color: #2e7d32; }
+    .tab-btn:hover { color: #2e7d32; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Orders ── */
+    .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .order-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: all 0.3s; border: 1px solid #e0e0e0; }
+    .order-card:hover { box-shadow: 0 8px 25px rgba(46,125,50,0.15); transform: translateY(-4px); }
+    .order-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .order-id { font-weight: 700; color: #2e7d32; font-size: 0.9rem; }
+    .order-date { color: #999; font-size: 0.85rem; }
+    .order-status { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .status-placed { background: #e3f2fd; color: #1976d2; }
+    .status-confirmed { background: #fff3e0; color: #f57c00; }
+    .status-delivered { background: #e8f5e9; color: #388e3c; }
+    .status-cancelled { background: #ffebee; color: #c62828; }
+    .payment-status { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-top: 8px; }
+    .payment-pending { background: #fff3cd; color: #856404; }
+    .payment-paid { background: #d4edda; color: #155724; }
+    .payment-failed { background: #f8d7da; color: #721c24; }
+    .order-nursery { font-weight: 600; color: #2e7d32; margin-bottom: 8px; }
+    .order-items { font-size: 0.9rem; color: #666; margin-bottom: 8px; }
+    .order-amount { font-size: 1.2rem; font-weight: 700; color: #2e7d32; margin-bottom: 12px; }
+    .order-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-small { flex: 1; padding: 8px 12px; font-size: 0.85rem; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; font-weight: 600; }
+    .btn-view { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
+    .btn-view:hover { background: #2e7d32; color: white; }
+    .btn-cancel { background: #ffebee; color: #c62828; border: 1px solid #e57373; }
+    .btn-cancel:hover:not(:disabled) { background: #c62828; color: white; }
+    .btn-cancel:disabled { opacity: 0.55; cursor: not-allowed; }
+    .loading { text-align: center; padding: 40px 20px; color: #999; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2e7d32; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    .empty-icon { font-size: 3rem; margin-bottom: 15px; opacity: 0.5; }
+
+    /* ── Order Details Modal ── */
+    .order-details-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .order-details-modal.show { display: flex; }
+    .modal-content-custom { background: white; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 50px rgba(0,0,0,0.3); }
+    .modal-header-custom { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .modal-header-custom h3 { margin: 0; color: #2e7d32; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; }
+    .close-btn:hover { color: #333; }
+    .detail-section { margin-bottom: 20px; }
+    .detail-section h5 { color: #2e7d32; font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; }
+    .detail-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.9rem; border-bottom: 1px solid #f5f5f5; }
+    .detail-item:last-child { border-bottom: none; }
+    .detail-label { color: #666; }
+    .detail-value { font-weight: 600; color: #333; }
+
+    /* ── Settings Tab ── */
+    .settings-content { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .settings-section { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid #f0f0f0; }
+    .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .settings-section h5 { font-weight: 700; color: #2e7d32; margin-bottom: 16px; font-size: 1rem; }
+    .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8f8f8; }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-label { font-weight: 500; color: #444; font-size: 0.92rem; }
+    .settings-row-desc { color: #999; font-size: 0.82rem; margin-top: 2px; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ddd; border-radius: 24px; transition: 0.3s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .toggle-switch input:checked + .toggle-slider { background: #2e7d32; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    footer { background: linear-gradient(135deg,#ffffff,#f0fff0); color: #4caf50; padding: 40px 50px 25px; margin: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(46,125,50,0.15),0 8px 25px rgba(0,0,0,0.08); border: 1px solid rgba(46,125,50,0.1); }
+    .footer-top-row { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding-bottom: 30px; }
+    .footer-col-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-col-left a { color: #4caf50; text-decoration: underline; font-size: 14px; }
+    .footer-col-center { text-align: center; }
+    .footer-logo { font-size: 28px; font-weight: 700; color: #2e7d32; letter-spacing: 2px; }
+    .footer-col-right { display: flex; justify-content: flex-end; }
+    .social-section { display: flex; gap: 18px; }
+    .social-icon { width: 36px; height: 36px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #4caf50; text-decoration: none; font-size: 16px; transition: all 0.3s; border: 1px solid rgba(46,125,50,0.3); }
+    .social-icon:hover { background: #2e7d32; color: white; border-color: #2e7d32; transform: translateY(-3px); }
+    .footer-divider { border-color: rgba(46,125,50,0.1); margin: 0 0 20px 0; }
+    .footer-bottom { text-align: center; font-size: 12px; color: #81c784; display: flex; flex-direction: column; gap: 8px; }
+    .footer-bottom p { margin: 0; }
+    .footer-bottom-links { display: flex; justify-content: center; gap: 20px; }
+    .footer-bottom-links a { color: #81c784; text-decoration: underline; font-size: 13px; }
+
+    @media (max-width: 768px) {
+      .edit-fields { grid-template-columns: 1fr; }
+      .edit-field.full-row { grid-column: 1; }
+      .footer-top-row { grid-template-columns: 1fr; text-align: center; gap: 25px; }
+      .footer-col-right { justify-content: center; }
+      .navbar-profile { margin-left: 0; padding-left: 0; border-left: none; margin-top: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="index.html">GreenSphere</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="identify.html">Identify Plant</a></li>
+        <li class="nav-item"><a class="nav-link" href="my-garden.html">My Garden</a></li>
+        <li class="nav-item"><a class="nav-link" href="nursery.html">Nursery</a></li>
+      </ul>
+      <div class="navbar-profile" id="navbarProfile"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="save-toast" id="saveToast">✅ Profile saved successfully!</div>
+
+<!-- ── Edit Profile Modal ── -->
+<div class="edit-modal-overlay" id="editModalOverlay" onclick="handleOverlayClick(event)">
+  <div class="edit-modal">
+    <div class="edit-modal-header">
+      <div class="edit-modal-title"><i class="fas fa-user-edit"></i> Edit Your Profile</div>
+      <button class="edit-modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <form onsubmit="saveProfile(event)">
+      <div class="edit-fields">
+        <div class="edit-field">
+          <label for="eName">Full Name</label>
+          <input type="text" id="eName" placeholder="Your full name" required>
+        </div>
+        <div class="edit-field">
+          <label for="ePhone">Phone</label>
+          <input type="tel" id="ePhone" placeholder="Phone number">
+        </div>
+        <div class="edit-field full-row">
+          <label for="eEmail">Email</label>
+          <input type="email" id="eEmail" placeholder="Email address" required>
+        </div>
+        <div class="edit-field full-row">
+          <label for="eAddress">Address</label>
+          <input type="text" id="eAddress" placeholder="Street address">
+        </div>
+        <div class="edit-field">
+          <label for="eCity">City</label>
+          <input type="text" id="eCity" placeholder="City">
+        </div>
+        <div class="edit-field">
+          <label for="eState">State</label>
+          <input type="text" id="eState" placeholder="State">
+        </div>
+      </div>
+      <div class="edit-modal-actions">
+        <button type="button" class="btn-cancel-edit" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn-save-edit"><i class="fas fa-save"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="profile-container">
+
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="profile-header-top">
+      <div>
+        <h2 id="userName">Welcome</h2>
+        <div class="user-email-text" id="userEmail">—</div>
+      </div>
+      <button class="btn-edit-profile" onclick="openEditModal()">
+        <i class="fas fa-edit"></i> Edit Profile
+      </button>
+    </div>
+    <!-- Info tiles -->
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">📱 Phone</div><div class="info-value" id="userPhone">-</div></div>
+      <div class="info-item"><div class="info-label">📍 Address</div><div class="info-value" id="userAddress">-</div></div>
+      <div class="info-item"><div class="info-label">🏙️ City</div><div class="info-value" id="userCity">-</div></div>
+      <div class="info-item"><div class="info-label">📍 State</div><div class="info-value" id="userState">-</div></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('orders', event)"><i class="fas fa-shopping-cart"></i> My Orders</button>
+  </div>
+
+  <div id="orders" class="tab-content active">
+    <div class="orders-grid" id="ordersGrid">
+      <div class="loading"><div class="spinner"></div><p>Loading your orders...</p></div>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- Order Details Modal -->
+<div class="order-details-modal" id="orderModal">
+  <div class="modal-content-custom">
+    <div class="modal-header-custom">
+      <h3 id="modalOrderId">Order Details</h3>
+      <button class="close-btn" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center"><span class="footer-logo">🌿 GreenSphere</span></div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-x-twitter"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+window.addEventListener('DOMContentLoaded', function () {
+  loadUserProfile();
+  loadOrders();
+  loadProfileImageInNavbar();
+  if (new URLSearchParams(window.location.search).get('edit') === '1') openEditModal();
+});
+
+function loadUserProfile() {
+  const userStr = localStorage.getItem('currentUser');
+  if (!userStr) { window.location.href = 'registration.html'; return; }
+  const u = JSON.parse(userStr);
+  document.getElementById('userName').textContent    = `Welcome, ${u.name || 'User'}!`;
+  document.getElementById('userEmail').textContent   = u.email   || '—';
+  document.getElementById('userPhone').textContent   = u.phone   || '-';
+  document.getElementById('userAddress').textContent = u.address || '-';
+  document.getElementById('userCity').textContent    = u.city    || '-';
+  document.getElementById('userState').textContent   = u.state   || '-';
+}
+
+// ── Edit Modal ──
+function openEditModal() {
+  const u = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  document.getElementById('eName').value    = u.name    || '';
+  document.getElementById('eEmail').value   = u.email   || '';
+  document.getElementById('ePhone').value   = u.phone   || '';
+  document.getElementById('eAddress').value = u.address || '';
+  document.getElementById('eCity').value    = u.city    || '';
+  document.getElementById('eState').value   = u.state   || '';
+  document.getElementById('editModalOverlay').classList.add('active');
+  document.getElementById('profileDropdown')?.classList.remove('active');
+  setTimeout(() => document.getElementById('eName').focus(), 100);
+}
+
+function closeEditModal() {
+  document.getElementById('editModalOverlay').classList.remove('active');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('editModalOverlay')) closeEditModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditModal(); });
+
+function saveProfile(event) {
+  event.preventDefault();
+  const existing = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const updated = {
+    ...existing,
+    name:    document.getElementById('eName').value.trim(),
+    email:   document.getElementById('eEmail').value.trim(),
+    phone:   document.getElementById('ePhone').value.trim(),
+    address: document.getElementById('eAddress').value.trim(),
+    city:    document.getElementById('eCity').value.trim(),
+    state:   document.getElementById('eState').value.trim(),
+  };
+  localStorage.setItem('currentUser', JSON.stringify(updated));
+  closeEditModal();
+  loadUserProfile();
+  loadProfileImageInNavbar();
+  const toast = document.getElementById('saveToast');
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 2800);
+}
+
+function switchTab(tabName, event) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+}
+
+// ── Orders ──
+async function loadOrders() {
+  const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  if (!u) return;
+  const grid = document.getElementById('ordersGrid');
+  try {
+    const res = await fetch(`/api/nursery/orders/user/${u.id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.success && data.data && data.data.length > 0) {
+      grid.innerHTML = data.data.map(o => createOrderCard(o)).join('');
+    } else {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">🛒</div><h5>No Orders Yet</h5><p>Start shopping at our nursery!</p><a href="nursery.html" class="btn btn-success mt-3">Browse Nursery</a></div>`;
+    }
+  } catch(err) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><h5>Error Loading Orders</h5><p>${err.message}</p></div>`;
+  }
+}
+
+function createOrderCard(order) {
+  const statusClass  = (order.order_status  || 'placed').replace(/\s+/g,'-').toLowerCase();
+  const paymentClass = (order.payment_status || 'pending').replace(/\s+/g,'-').toLowerCase();
+  const orderDate = new Date(order.ordered_at).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  const isCancelled = (order.order_status || '').toLowerCase() === 'cancelled';
+  const cancelBtn = isCancelled
+    ? `<span style="color:#c62828;font-size:0.82rem;align-self:center;font-weight:600;flex:1;text-align:center;">Cancelled</span>`
+    : `<button class="btn-small btn-cancel" onclick="cancelOrder('${order.order_id}', this)">Cancel</button>`;
+  return `<div class="order-card">
+    <div class="order-header">
+      <div><div class="order-id">${order.order_id}</div><div class="order-date">${orderDate}</div></div>
+      <div style="text-align:right;"><span class="order-status status-${statusClass}">${order.order_status}</span><br>
+      <span class="payment-status payment-${paymentClass}">${order.payment_status}</span></div>
+    </div>
+    <div class="order-nursery">🌱 ${order.nursery_name}</div>
+    <div class="order-items">${order.items.length} item${order.items.length!==1?'s':''} | ${order.total_plants} plants</div>
+    <div class="order-amount">₹${parseFloat(order.total_amount).toFixed(2)}</div>
+    <div class="order-actions">
+      <button class="btn-small btn-view" onclick="viewOrderDetails(${order.id})">View Details</button>
+      ${cancelBtn}
+    </div>
+  </div>`;
+}
+
+async function viewOrderDetails(orderId) {
+  try {
+    const res = await fetch(`/api/nursery/orders/${orderId}`);
+    const data = await res.json();
+    if (data.success) {
+      const o = data.data;
+      const itemsHTML = (o.items||[]).map(i =>
+        `<div class="detail-item"><span class="detail-label">${i.plant_name} ×${i.quantity}</span><span class="detail-value">₹${(i.unit_price*i.quantity).toFixed(2)}</span></div>`
+      ).join('');
+      document.getElementById('modalOrderId').textContent = o.order_id;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="detail-section"><h5>Order Info</h5>
+          <div class="detail-item"><span class="detail-label">Order ID</span><span class="detail-value">${o.order_id}</span></div>
+          <div class="detail-item"><span class="detail-label">Date</span><span class="detail-value">${new Date(o.ordered_at).toLocaleString()}</span></div>
+          <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value" style="color:#2e7d32;">${o.order_status}</span></div>
+          <div class="detail-item"><span class="detail-label">Payment</span><span class="detail-value">${o.payment_status}</span></div>
+        </div>
+        <div class="detail-section"><h5>Nursery</h5>
+          <div class="detail-item"><span class="detail-label">Name</span><span class="detail-value">${o.nursery_name}</span></div>
+          <div class="detail-item"><span class="detail-label">Location</span><span class="detail-value">${o.nursery_area||'-'}, ${o.nursery_city||'-'}</span></div>
+          <div class="detail-item"><span class="detail-label">Distance</span><span class="detail-value">${o.nursery_distance||'-'}</span></div>
+        </div>
+        <div class="detail-section"><h5>Items Ordered</h5>${itemsHTML}</div>
+        <div class="detail-section"><h5>Summary</h5>
+          <div class="detail-item"><span class="detail-label">Total Plants</span><span class="detail-value">${o.total_plants}</span></div>
+          <div class="detail-item"><span class="detail-label">Total Amount</span><span class="detail-value" style="color:#2e7d32;font-size:1.1rem;">₹${parseFloat(o.total_amount).toFixed(2)}</span></div>
+        </div>
+        ${o.delivery_address?`<div class="detail-section"><h5>Delivery Address</h5><p style="color:#666;font-size:0.9rem;">${o.delivery_address}</p></div>`:''}
+        ${o.order_notes?`<div class="detail-section"><h5>Notes</h5><p style="color:#666;font-size:0.9rem;">${o.order_notes}</p></div>`:''}`;
+      document.getElementById('orderModal').classList.add('show');
+    }
+  } catch(e) { alert('Error loading order details'); }
+}
+
+function closeOrderModal() { document.getElementById('orderModal').classList.remove('show'); }
+
+async function cancelOrder(orderId, btn) {
+  if (!confirm('Are you sure you want to cancel this order?')) return;
+  btn.disabled = true;
+  btn.textContent = 'Cancelling...';
+  try {
+    const res  = await fetch(`/api/nursery/orders/${orderId}/cancel`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const card = btn.closest('.order-card');
+      const statusBadge = card.querySelector('.order-status');
+      if (statusBadge) { statusBadge.textContent = 'Cancelled'; statusBadge.className = 'order-status status-cancelled'; }
+      btn.outerHTML = '<span style="color:#c62828;font-size:0.82rem;align-self:center;font-weight:600;flex:1;text-align:center;">Cancelled</span>';
+    } else {
+      alert('Could not cancel: ' + (data.message || 'Unknown error'));
+      btn.disabled = false; btn.textContent = 'Cancel';
+    }
+  } catch(e) {
+    alert('Error cancelling order. Please try again.');
+    btn.disabled = false; btn.textContent = 'Cancel';
+  }
+}
+
+// ── Navbar profile dropdown ──
+function loadProfileImageInNavbar() {
+  const pc = document.getElementById('navbarProfile');
+  if (!pc) return;
+  try {
+    const u = JSON.parse(localStorage.getItem('currentUser'));
+    if (!u) { pc.innerHTML = '<a href="registration.html" class="nav-link">Login</a>'; return; }
+    const img      = localStorage.getItem('profileImageUrl');
+    const name     = u.name  || 'User';
+    const email    = u.email || '';
+    const phone    = u.phone || 'Not provided';
+    const city     = u.city  || 'Not specified';
+    const state    = u.state || '';
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase();
+    const av = (size) => img
+      ? `<img src="${img}" alt="${name}">`
+      : `<div style="background:linear-gradient(135deg,#66bb6a,#2e7d32);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${size==='sm'?'0.9':'1.2'}rem;width:100%;height:100%;">${initials}</div>`;
+
+    pc.innerHTML = `
+      <div class="profile-image-navbar" onclick="toggleProfileDropdown(event)">${av('sm')}</div>
+      <span class="nav-link" style="margin-left:0;cursor:pointer;" onclick="toggleProfileDropdown(event)">${name}</span>
+      <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
+        <div class="profile-dropdown-header">
+          <div class="profile-dropdown-avatar">${av('lg')}</div>
+          <div>
+            <div class="profile-dropdown-name">${name}</div>
+            <div class="profile-dropdown-email">${email}</div>
+          </div>
+        </div>
+        <div class="profile-dropdown-body">
+          <div class="profile-detail-row"><span class="profile-detail-label">📞 Phone</span><span class="profile-detail-value">${phone}</span></div>
+          <div class="profile-detail-row"><span class="profile-detail-label">📍 Location</span><span class="profile-detail-value">${city}${state?', '+state:''}</span></div>
+          <div class="profile-detail-row"><span class="profile-detail-label">✅ Status</span><span class="profile-detail-value" style="color:#4caf50;font-weight:600;">Verified</span></div>
+        </div>
+        <div class="profile-dropdown-footer">
+          <a href="#" class="profile-btn-view" onclick="openEditModal();event.preventDefault();">Edit Profile</a>
+          <a href="#" class="profile-btn-logout" onclick="logoutUser(event)">Logout</a>
+        </div>
+      </div>`;
+
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('profileDropdown');
+      if (dd && !pc.contains(e.target)) dd.classList.remove('active');
+    });
+  } catch(e) { pc.innerHTML = '<a href="profile.html" class="nav-link">Profile</a>'; }
+}
+
+function toggleProfileDropdown(event) {
+  event.stopPropagation();
+  document.getElementById('profileDropdown')?.classList.toggle('active');
+}
+
+function logoutUser(event) {
+  event.preventDefault();
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('profileImageUrl');
+    window.location.href = 'index.html';
+  }
+}
+</script>
+</body>
+</html>

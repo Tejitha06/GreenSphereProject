@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Validation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2e7d32;
+            margin-bottom: 30px;
+        }
+        .test-group {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        .test-name {
+            font-weight: bold;
+            flex: 1;
+        }
+        .test-expected {
+            color: #666;
+            margin: 0 10px;
+            min-width: 80px;
+        }
+        .test-result {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+        }
+        .result-valid {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .result-invalid {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        .result-loading {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+        .stat-box {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .stat {
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-pass {
+            background: #c8e6c9;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .stat-fail {
+            background: #ffcdd2;
+            color: #c62828;
+            font-weight: bold;
+        }
+        .stat-total {
+            background: #bbdefb;
+            color: #1565c0;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #1b5e20;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Plant Validation Test Suite</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Info:</strong> This page tests the plant validation endpoint at <code>/api/plants/validate</code>. 
+            Make sure the Flask backend is running on localhost:5000.
+        </div>
+
+        <button id="runTests" onclick="runTests()">Run All Tests</button>
+
+        <div class="test-group" id="testResults">
+            <h3>Test Results (click "Run All Tests" to start)</h3>
+        </div>
+
+        <div class="stat-box" id="stats" style="display: none;">
+            <div class="stat stat-pass" id="passCount">Passed: 0</div>
+            <div class="stat stat-fail" id="failCount">Failed: 0</div>
+            <div class="stat stat-total" id="totalCount">Total: 0</div>
+        </div>
+    </div>
+
+    <script>
+        const testCases = [
+            // Valid plants
+            { name: 'Rose', expected: true, category: 'Valid Common Plant' },
+            { name: 'Tomato', expected: true, category: 'Valid Vegetable' },
+            { name: 'Basil', expected: true, category: 'Valid Herb' },
+            { name: 'Monstera', expected: true, category: 'Valid Houseplant' },
+            { name: 'Snake Plant', expected: true, category: 'Valid Houseplant' },
+            { name: 'Mint', expected: true, category: 'Valid Herb' },
+            { name: 'Sunflower', expected: true, category: 'Valid Flower' },
+            
+            // Invalid plants - animals
+            { name: 'Dog', expected: false, category: 'Invalid - Animal' },
+            { name: 'Cat', expected: false, category: 'Invalid - Animal' },
+            { name: 'Bird', expected: false, category: 'Invalid - Animal' },
+            
+            // Invalid plants - objects
+            { name: 'Car', expected: false, category: 'Invalid - Object' },
+            { name: 'Rock', expected: false, category: 'Invalid - Object' },
+            { name: 'Plastic', expected: false, category: 'Invalid - Object' },
+            
+            // Invalid - nonsense
+            { name: 'XYZ123', expected: false, category: 'Invalid - Gibberish' },
+            { name: 'A', expected: false, category: 'Invalid - Too Short' },
+        ];
+
+        async function validatePlant(plantName) {
+            try {
+                const response = await fetch('/api/plants/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ plant_name: plantName })
+                });
+
+                if (!response.ok) {
+                    console.error(`HTTP Error: ${response.status}`);
+                    return null;
+                }
+
+                const data = await response.json();
+                if (data.success && data.data) {
+                    return data.data.valid === true;
+                }
+                return null;
+            } catch (error) {
+                console.error('Validation error:', error);
+                return null;
+            }
+        }
+
+        async function runTests() {
+            const resultsDiv = document.getElementById('testResults');
+            const runBtn = document.getElementById('runTests');
+            
+            resultsDiv.innerHTML = '<h3>Running Tests...</h3>';
+            runBtn.disabled = true;
+
+            let passed = 0;
+            let failed = 0;
+
+            for (const testCase of testCases) {
+                const result = await validatePlant(testCase.name);
+                const isCorrect = result === testCase.expected;
+                
+                if (isCorrect) {
+                    passed++;
+                } else {
+                    failed++;
+                }
+
+                const resultHTML = document.createElement('div');
+                resultHTML.className = 'test-item';
+                resultHTML.innerHTML = `
+                    <span class="test-name">"${testCase.name}"</span>
+                    <span class="test-expected">(${testCase.category})</span>
+                    <span class="test-expected">Expected: ${testCase.expected ? '✓ Valid' : '✗ Invalid'}</span>
+                    <span class="test-result ${isCorrect ? 'result-valid' : 'result-invalid'}">
+                        ${result === null ? 'ERROR' : (result ? '✓ Valid' : '✗ Invalid')}
+                    </span>
+                    <span style="margin-left: 10px; font-weight: bold; ${isCorrect ? 'color: green' : 'color: red'}">
+                        ${isCorrect ? '✓ PASS' : '✗ FAIL'}
+                    </span>
+                `;
+
+                if (resultsDiv.querySelector('h3')) {
+                    resultsDiv.querySelector('h3').remove();
+                }
+                resultsDiv.appendChild(resultHTML);
+            }
+
+            // Show stats
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('passCount').textContent = `Passed: ${passed}`;
+            document.getElementById('failCount').textContent = `Failed: ${failed}`;
+            document.getElementById('totalCount').textContent = `Total: ${testCases.length}`;
+
+            runBtn.disabled = false;
+            console.log(`Tests complete: ${passed} passed, ${failed} failed`);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GreenSphere | Smart Plant Care</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: "Segoe UI", sans-serif; overflow-x: hidden; }
+    .video-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; }
+    .video-background video { min-width: 100%; min-height: 100%; width: auto; height: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: cover; }
+    .video-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
+    .hero { min-height: 90vh; display: flex; align-items: center; position: relative; }
+    .hero h1 { font-size: 42px; font-weight: 700; color: #ffffff; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); }
+    .hero p { font-size: 18px; color: #f0f0f0; margin-top: 15px; text-shadow: 1px 1px 4px rgba(0,0,0,0.7); }
+    .hero-tagline-pill { display: inline-flex; align-items: center; gap: 10px; background: rgba(30,30,30,0.65); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50px; padding: 10px 28px; margin: 12px 0 18px; font-size: 17px; color: #f0f0f0; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); letter-spacing: 0.3px; }
+    .hero-tagline-pill em { font-style: italic; color: #b2dfb4; }
+    .hero-tagline-pill strong { font-weight: 700; color: #ffffff; }
+    .btn-success { background-color: #2e7d32; border: none; padding: 12px 26px; font-size: 16px; border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease; }
+    .btn-success:hover { background-color: #1b5e20; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+    .navbar { background-color: rgba(255,255,255,0.95) !important; backdrop-filter: blur(10px); }
+    .navbar-brand { font-weight: bold; color: #2e7d32 !important; }
+
+    /* About Section */
+    .about-section { background: linear-gradient(135deg, #f5f7fa, #c3cfe2); padding: 60px 0; position: relative; }
+    .about-section h2 { text-align: center; font-weight: 700; color: #2e7d32; margin-bottom: 15px; font-size: 36px; }
+    .about-section .lead { text-align: center; max-width: 850px; margin: auto; font-size: 17px; color: #555; }
+    .stats-container { background: linear-gradient(135deg, #2e7d32, #4caf50); border-radius: 15px; padding: 30px 20px; margin: 30px 0; box-shadow: 0 10px 30px rgba(46,125,50,0.3); }
+    .stat-item { text-align: center; color: white; }
+    .stat-number { font-size: 42px; font-weight: 700; display: block; margin-bottom: 5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+    .stat-label { font-size: 15px; opacity: 0.95; font-weight: 500; }
+    .mission-box { background: linear-gradient(135deg, rgba(46,125,50,0.1), rgba(76,175,80,0.1)); border-left: 4px solid #2e7d32; border-radius: 8px; padding: 25px; margin: 25px 0; }
+    .mission-box h3 { color: #2e7d32; font-size: 24px; margin-bottom: 12px; font-weight: 600; }
+    .mission-box p { color: #555; font-size: 16px; line-height: 1.7; margin: 0; }
+
+    /* Features Section */
+    .features-section { background: #f0fff0; padding: 50px 0; position: relative; }
+    .feature-card { background: white; border-radius: 12px; padding: 20px 25px; text-align: left; box-shadow: 0 3px 12px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer; border: 2px solid transparent; margin-bottom: 15px; width: 100%; display: flex; align-items: center; gap: 20px; }
+    .feature-card:hover { transform: translateY(-5px); box-shadow: 0 6px 25px rgba(46,125,50,0.2); border-color: #2e7d32; }
+    .feature-card .icon { font-size: 42px; flex-shrink: 0; }
+    .feature-content { flex: 1; }
+    .feature-card h4 { font-size: 18px; color: #2e7d32; font-weight: 700; margin-bottom: 6px; }
+    .feature-card p { font-size: 14px; color: #666; margin: 0; line-height: 1.5; }
+    .feature-card .arrow-icon { font-size: 24px; color: #2e7d32; opacity: 0.5; transition: all 0.3s; flex-shrink: 0; }
+    .feature-card:hover .arrow-icon { opacity: 1; transform: translateX(5px); }
+
+    /* Testimonial Section */
+    .testimonial-section { background: white; padding: 60px 0; }
+    .testimonial-section h3 { text-align: center; color: #2e7d32; font-size: 32px; margin-bottom: 40px; font-weight: 700; }
+    .testimonial-card { background: #f8f9fa; border-radius: 15px; padding: 25px; border-left: 5px solid #2e7d32; margin-bottom: 20px; transition: all 0.3s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+    .testimonial-card:hover { transform: translateX(5px); box-shadow: 0 5px 20px rgba(46,125,50,0.15); }
+    .testimonial-text { font-style: italic; color: #555; margin-bottom: 15px; font-size: 15px; line-height: 1.7; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .author-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #2e7d32, #4caf50); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; flex-shrink: 0; }
+    .author-info { flex: 1; }
+    .author-name { font-weight: 600; color: #2e7d32; margin: 0; font-size: 16px; }
+    .author-role { font-size: 13px; color: #888; margin: 0; }
+    .rating { color: #ffc107; font-size: 14px; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .about-section h2 { font-size: 28px; }
+      .stat-number { font-size: 32px; }
+      .features-section { padding: 40px 0; }
+      .testimonial-section { padding: 40px 0; }
+      .feature-card { flex-direction: column; align-items: flex-start; padding: 20px; }
+    }
+
+    /* Footer */
+    footer { background: linear-gradient(135deg, #ffffff, #f0fff0); color: #4caf50; padding: 40px 50px 25px; margin: 40px 40px 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(46,125,50,0.15), 0 8px 25px rgba(0,0,0,0.08); border: 1px solid rgba(46,125,50,0.1); position: relative; }
+    .footer-top-row { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding-bottom: 30px; }
+    .footer-col-left { display: flex; flex-direction: column; gap: 6px; }
+    .footer-col-left a { color: #4caf50; text-decoration: underline; font-size: 14px; transition: color 0.3s; }
+    .footer-col-left a:hover { color: #2e7d32; }
+    .footer-col-center { text-align: center; }
+    .footer-logo { font-size: 28px; font-weight: 700; color: #2e7d32; letter-spacing: 2px; }
+    .footer-col-right { display: flex; justify-content: flex-end; }
+    .social-section { display: flex; gap: 18px; }
+    .social-icon { width: 36px; height: 36px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #4caf50; text-decoration: none; font-size: 16px; transition: all 0.3s ease; border: 1px solid rgba(46,125,50,0.3); }
+    .social-icon:hover { background: #2e7d32; color: white; border-color: #2e7d32; transform: translateY(-3px); }
+    .footer-divider { border-color: rgba(46,125,50,0.1); margin: 0 0 20px 0; }
+    .footer-bottom { text-align: center; font-size: 12px; color: #81c784; display: flex; flex-direction: column; gap: 8px; }
+    .footer-bottom p { margin: 0; }
+    .footer-bottom-links { display: flex; justify-content: center; gap: 20px; }
+    .footer-bottom-links a { color: #81c784; text-decoration: underline; font-size: 13px; transition: color 0.3s; }
+    .footer-bottom-links a:hover { color: #4caf50; }
+    @media (max-width: 768px) {
+      .footer-top-row { grid-template-columns: 1fr; text-align: center; gap: 25px; }
+      .footer-col-right { justify-content: center; }
+      .footer-bottom-links { flex-direction: column; gap: 8px; }
+    }
+
+    /* ===== FEATURE POPUP MODAL STYLES ===== */
+    .feature-modal-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+    .feature-modal-overlay.show { display: flex; animation: fadeOverlay 0.25s ease; }
+    @keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+    .feature-modal { background: #fff; border-radius: 16px; max-width: 400px; width: 90%; box-shadow: 0 24px 60px rgba(46,125,50,0.25), 0 8px 24px rgba(0,0,0,0.15); overflow: hidden; position: relative; animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.88) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .feature-modal-header { background: linear-gradient(135deg, #2e7d32, #4caf50); padding: 18px 20px 14px; display: flex; align-items: center; gap: 12px; }
+    .feature-modal-icon { font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2)); }
+    .feature-modal-title-block h2 { color: #fff; font-size: 18px; font-weight: 700; margin: 0 0 3px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .feature-modal-title-block p { color: rgba(255,255,255,0.88); font-size: 12px; margin: 0; }
+    .feature-modal-close { position: absolute; top: 12px; right: 14px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 15px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.2s; line-height: 1; }
+    .feature-modal-close:hover { background: rgba(255,255,255,0.38); transform: rotate(90deg); }
+    .feature-modal-body { padding: 16px 20px; }
+    .feature-modal-desc { color: #555; font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+    .modal-stats-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .modal-stat-chip { flex: 1; text-align: center; background: linear-gradient(135deg, #2e7d32, #4caf50); border-radius: 10px; padding: 8px 4px; color: white; }
+    .modal-stat-chip .chip-number { font-size: 17px; font-weight: 700; display: block; }
+    .modal-stat-chip .chip-label { font-size: 10px; opacity: 0.9; }
+    .feature-highlight-list { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 7px; }
+    .feature-highlight-list li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; background: #f0fff0; border-radius: 8px; border-left: 3px solid #4caf50; font-size: 13px; color: #444; line-height: 1.4; }
+    .feature-highlight-list li .list-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    /* Footer with only Close button centered */
+    .feature-modal-footer { padding: 10px 20px 16px; display: flex; justify-content: center; }
+    .feature-modal-btn-secondary { padding: 10px 36px; background: #f5f5f5; color: #666; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .feature-modal-btn-secondary:hover { background: #eeeeee; }
+  </style>
+</head>
+<body>
+
+<!-- VIDEO BACKGROUND -->
+<div class="video-background">
+  <video autoplay muted loop playsinline>
+    <source src="plant grown.mp4" type="video/mp4">
+  </video>
+</div>
+<div class="video-overlay"></div>
+
+<!-- NAVBAR (profile section completely removed) -->
+<nav class="navbar navbar-expand-lg shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🌿 GreenSphere</a>
+  </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center justify-content-center">
+      <div class="col-md-8 text-center">
+        <h1>Your Smart Plant Care Guide</h1>
+        <div>
+          <span class="hero-tagline-pill">
+            🌿 <em>Nurturing Nature,</em>&nbsp;<strong>Empowering Life.</strong> 🌿
+          </span>
+        </div>
+        <p>
+          Identify plants, detect diseases, order from nearby nurseries, learn to grow your favourite plants from scratch
+          and track your personal garden — all in one platform.
+        </p>
+        <button class="btn btn-success mt-4" onclick="window.location.href='l1.html'">
+          Get Started
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT GREENSPHERE SECTION -->
+<section class="about-section">
+  <div class="container">
+    <h2>About GreenSphere</h2>
+    <p class="lead">
+      Your complete plant care companion — powered by AI, designed for everyone from beginners to seasoned gardeners.
+    </p>
+    <div class="stats-container">
+      <div class="row">
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+          <div class="stat-item">
+            <span class="stat-number">35K+</span>
+            <span class="stat-label">Plant Species</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+          <div class="stat-item">
+            <span class="stat-number">93%</span>
+            <span class="stat-label">Accuracy Rate</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="stat-item">
+            <span class="stat-number">10K+</span>
+            <span class="stat-label">Happy Gardeners</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="stat-item">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">Disease Database</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mission-box">
+      <h3>🌍 Our Mission</h3>
+      <p>
+        We believe everyone deserves a thriving garden. GreenSphere combines cutting-edge AI 
+        technology with botanical expertise to make plant care accessible, intuitive, and rewarding. 
+        Whether you're a seasoned gardener or just starting your green journey, we're here to help 
+        your plants flourish and your garden dreams come to life.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section class="features-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+
+        <div class="feature-card" onclick="openModal('identify-modal')">
+          <span class="icon">🔍</span>
+          <div class="feature-content">
+            <h4>Identification Plants</h4>
+            <p>AI-powered plant recognition with 98% accuracy</p>
+          </div>
+          <span class="arrow-icon">›</span>
+        </div>
+
+        <div class="feature-card" onclick="openModal('disease-modal')">
+          <span class="icon">🩺</span>
+          <div class="feature-content">
+            <h4>Disease Detection</h4>
+            <p>Early disease diagnosis and treatment recommendations</p>
+          </div>
+          <span class="arrow-icon">›</span>
+        </div>
+
+        <div class="feature-card" onclick="openModal('garden-modal')">
+          <span class="icon">🌱</span>
+          <div class="feature-content">
+            <h4>My Garden</h4>
+            <p>Personalized plant care and watering schedules</p>
+          </div>
+          <span class="arrow-icon">›</span>
+        </div>
+
+        <div class="feature-card" onclick="openModal('nursery-modal')">
+          <span class="icon">🏪</span>
+          <div class="feature-content">
+            <h4>Nurseries</h4>
+            <p>Find nearby nurseries and order plants online</p>
+          </div>
+          <span class="arrow-icon">›</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS SECTION -->
+<section class="testimonial-section">
+  <div class="container">
+    <h3>💚 What Our Users Say</h3>
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mb-3">
+        <div class="testimonial-card">
+          <div class="testimonial-text">"GreenSphere saved my succulent collection! Disease detection caught root rot early."</div>
+          <div class="testimonial-author">
+            <div class="author-avatar">SP</div>
+            <div class="author-info">
+              <p class="author-name">Sarah Peterson</p>
+              <p class="author-role">Home Gardener</p>
+            </div>
+            <div class="rating">⭐⭐⭐⭐⭐</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6 mb-3">
+        <div class="testimonial-card">
+          <div class="testimonial-text">"As a beginner, I was always worried. This app guides me step-by-step!"</div>
+          <div class="testimonial-author">
+            <div class="author-avatar">MR</div>
+            <div class="author-info">
+              <p class="author-name">Mike Rodriguez</p>
+              <p class="author-role">Urban Gardener</p>
+            </div>
+            <div class="rating">⭐⭐⭐⭐⭐</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6 mb-3">
+        <div class="testimonial-card">
+          <div class="testimonial-text">"Plant identification is spot-on. It feels like having a botanist in my pocket."</div>
+          <div class="testimonial-author">
+            <div class="author-avatar">EC</div>
+            <div class="author-info">
+              <p class="author-name">Emma Chen</p>
+              <p class="author-role">Plant Enthusiast</p>
+            </div>
+            <div class="rating">⭐⭐⭐⭐⭐</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-top-row">
+      <div class="footer-col-left">
+        <a href="mailto:greensphere01@gmail.com">greensphere01@gmail.com</a>
+        <a href="tel:+11234567890">(123) 456-7890</a>
+      </div>
+      <div class="footer-col-center">
+        <span class="footer-logo">🌿 GreenSphere</span>
+      </div>
+      <div class="footer-col-right">
+        <div class="social-section">
+          <a href="#instagram" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#facebook" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#twitter" class="social-icon" title="Twitter"><i class="fab fa-x-twitter"></i></a>
+          <a href="#linkedin" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <hr class="footer-divider">
+    <div class="footer-bottom">
+      <p>© 2026 GreenSphere. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- 1. Plant Identification Modal -->
+<div class="feature-modal-overlay" id="identify-modal" onclick="closeModalOutside(event,'identify-modal')">
+  <div class="feature-modal">
+    <button class="feature-modal-close" onclick="closeModal('identify-modal')">✕</button>
+    <div class="feature-modal-header">
+      <div class="feature-modal-icon">🔍</div>
+      <div class="feature-modal-title-block">
+        <h2>Plant Identification</h2>
+        <p>Snap a photo — know your plant instantly</p>
+      </div>
+    </div>
+    <div class="feature-modal-body">
+      <div class="modal-stats-row">
+        <div class="modal-stat-chip"><span class="chip-number">35K+</span><span class="chip-label">Species</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">98%</span><span class="chip-label">Accuracy</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">&lt;3s</span><span class="chip-label">Speed</span></div>
+      </div>
+      <p class="feature-modal-desc">Simply snap a photo of any plant and our advanced AI identifies it within seconds. Get rich details on care requirements, growth habits, and everything you need to nurture it.</p>
+      <ul class="feature-highlight-list">
+        <li><span class="list-icon">📸</span> Upload or capture a photo — results in under 3 seconds</li>
+        <li><span class="list-icon">🌍</span> Covers 35,000+ species from all around the world</li>
+        <li><span class="list-icon">📋</span> Full care guide: sunlight, water, soil & fertiliser needs</li>
+        <li><span class="list-icon">🔖</span> Save identified plants directly to My Garden</li>
+      </ul>
+    </div>
+    <div class="feature-modal-footer">
+      <button class="feature-modal-btn-secondary" onclick="closeModal('identify-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Disease Detection Modal -->
+<div class="feature-modal-overlay" id="disease-modal" onclick="closeModalOutside(event,'disease-modal')">
+  <div class="feature-modal">
+    <button class="feature-modal-close" onclick="closeModal('disease-modal')">✕</button>
+    <div class="feature-modal-header">
+      <div class="feature-modal-icon">🩺</div>
+      <div class="feature-modal-title-block">
+        <h2>Disease Detection</h2>
+        <p>Diagnose & treat plant diseases early</p>
+      </div>
+    </div>
+    <div class="feature-modal-body">
+      <div class="modal-stats-row">
+        <div class="modal-stat-chip"><span class="chip-number">500+</span><span class="chip-label">Diseases</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">93%</span><span class="chip-label">Accuracy</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">24/7</span><span class="chip-label">Available</span></div>
+      </div>
+      <p class="feature-modal-desc">Catch plant diseases before they spread. Our AI analyses leaf patterns, discolouration, and symptoms to deliver accurate diagnoses with step-by-step treatment plans.</p>
+      <ul class="feature-highlight-list">
+        <li><span class="list-icon">🦠</span> Detects 500+ diseases, pests & nutrient deficiencies</li>
+        <li><span class="list-icon">💊</span> Personalised treatment plans — organic & chemical options</li>
+        <li><span class="list-icon">⚠️</span> Severity assessment — know exactly how urgent it is</li>
+        <li><span class="list-icon">📈</span> Track recovery progress over time</li>
+      </ul>
+    </div>
+    <div class="feature-modal-footer">
+      <button class="feature-modal-btn-secondary" onclick="closeModal('disease-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. My Garden Modal -->
+<div class="feature-modal-overlay" id="garden-modal" onclick="closeModalOutside(event,'garden-modal')">
+  <div class="feature-modal">
+    <button class="feature-modal-close" onclick="closeModal('garden-modal')">✕</button>
+    <div class="feature-modal-header">
+      <div class="feature-modal-icon">🌱</div>
+      <div class="feature-modal-title-block">
+        <h2>My Garden</h2>
+        <p>Your personal plant care dashboard</p>
+      </div>
+    </div>
+    <div class="feature-modal-body">
+      <div class="modal-stats-row">
+        <div class="modal-stat-chip"><span class="chip-number">Smart</span><span class="chip-label">Schedules</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">🔔</span><span class="chip-label">Reminders</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">📊</span><span class="chip-label">Insights</span></div>
+      </div>
+      <p class="feature-modal-desc">Manage all your plants in one beautiful space. Set custom watering schedules, track growth milestones, and get timely reminders so your garden always thrives.</p>
+      <ul class="feature-highlight-list">
+        <li><span class="list-icon">💧</span> Smart watering reminders tailored to each plant's needs</li>
+        <li><span class="list-icon">📅</span> Fertilising & pruning schedule calendar</li>
+        <li><span class="list-icon">📷</span> Photo journal — track your plant's growth over time</li>
+        <li><span class="list-icon">🌡️</span> Climate tips based on your local weather conditions</li>
+      </ul>
+    </div>
+    <div class="feature-modal-footer">
+      <button class="feature-modal-btn-secondary" onclick="closeModal('garden-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Nearby Nurseries Modal -->
+<div class="feature-modal-overlay" id="nursery-modal" onclick="closeModalOutside(event,'nursery-modal')">
+  <div class="feature-modal">
+    <button class="feature-modal-close" onclick="closeModal('nursery-modal')">✕</button>
+    <div class="feature-modal-header">
+      <div class="feature-modal-icon">🏪</div>
+      <div class="feature-modal-title-block">
+        <h2>Nearby Nurseries</h2>
+        <p>Find, browse & order plants near you</p>
+      </div>
+    </div>
+    <div class="feature-modal-body">
+      <div class="modal-stats-row">
+        <div class="modal-stat-chip"><span class="chip-number">1K+</span><span class="chip-label">Nurseries</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">📍</span><span class="chip-label">Near You</span></div>
+        <div class="modal-stat-chip"><span class="chip-number">🚚</span><span class="chip-label">Delivery</span></div>
+      </div>
+      <p class="feature-modal-desc">Discover the best local nurseries around you, browse their catalogues, check availability, and place orders for home delivery or in-store pickup — all within the app.</p>
+      <ul class="feature-highlight-list">
+        <li><span class="list-icon">📍</span> GPS-powered map showing nurseries closest to you</li>
+        <li><span class="list-icon">🌺</span> Browse plants with live prices & stock availability</li>
+        <li><span class="list-icon">🛒</span> Online ordering with home delivery or store pickup</li>
+        <li><span class="list-icon">⭐</span> Verified ratings & reviews from our gardening community</li>
+      </ul>
+    </div>
+    <div class="feature-modal-footer">
+      <button class="feature-modal-btn-secondary" onclick="closeModal('nursery-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script>
+  function openModal(id) {
+    document.getElementById(id).classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  function closeModalOutside(event, id) {
+    if (event.target === document.getElementById(id)) closeModal(id);
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.feature-modal-overlay.show').forEach(el => el.classList.remove('show'));
+      document.body.style.overflow = '';
+    }
+  });
+</script>
+</body>
+</html>

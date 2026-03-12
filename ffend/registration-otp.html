@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - GreenSphere</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            background-color: #1a2433;
+            overflow: hidden;
+        }
+
+        /* The Main Split Layout */
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Left Side: Video Content */
+        .left-side {
+            flex: 1.2;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-side video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Right Side: Form Container */
+        .right-side {
+            flex: 0.8;
+            background:#1a2433;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        /* Box Styles */
+        .verify-box {
+            background: rgba(90, 143, 106, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .verify-box h2 {
+            color: #4CAF50;
+            text-align: left;
+            margin-bottom: 5px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            outline: none;
+        }
+
+        .form-group input:disabled {
+            background: rgba(255,255,255,0.02);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
+        }
+
+        .email-display {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            color: #4CAF50;
+            font-size: 13px;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+
+        .otp-info {
+            color: #4CAF50;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .countdown {
+            color: #ff9800;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 14px;
+            background: #28ca56;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+
+        .verify-btn:hover {
+            background: #22b34a;
+        }
+
+        .verify-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .resend-section {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+
+        .resend-btn {
+            background: transparent;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .resend-btn:hover {
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+
+        .back-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="main-wrapper">
+    <div class="left-side">
+        <video autoplay muted loop>
+            <source src="tulips.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="right-side">
+        <div class="verify-box">
+            <h2>Verify Email</h2>
+            <p class="subtitle">Enter the OTP sent to your email to complete registration.</p>
+
+            <form id="otpForm" onsubmit="return false;">
+                <!-- Display Email -->
+                <div class="email-display" id="emailDisplay"></div>
+
+                <!-- OTP Input -->
+                <div class="form-group">
+                    <label>Enter 6-digit OTP</label>
+                    <input type="text" id="otp" placeholder="000000" maxlength="6" inputmode="numeric" required>
+                    <p class="otp-info" id="otpInfo"></p>
+                    <p class="countdown" id="countdownTimer"></p>
+                    <p class="error-message" id="otpError" style="display: none;"></p>
+                </div>
+
+                <button type="submit" class="verify-btn" id="verifyBtn" onclick="handleVerifyOTP(event)">
+                    Verify & Create Account
+                </button>
+            </form>
+
+            <!-- Resend Section -->
+            <div class="resend-section">
+                Don't see the OTP?
+                <button class="resend-btn" id="resendBtn" onclick="handleResendOTP()">Resend OTP</button>
+            </div>
+
+            <div class="back-link">
+                <p>Already have an account? <a href="l1.html">Log in</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="shared-data.js"></script>
+<script>
+    let userEmail = null;
+    let otpExpiryTime = null;
+    let countdownInterval = null;
+
+    // Initialize page with email from registration
+    window.addEventListener('load', function() {
+        // Get email from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        userEmail = urlParams.get('email');
+
+        if (!userEmail) {
+            alert('Invalid access. Please register again.');
+            window.location.href = 'registration.html';
+            return;
+        }
+
+        // Display email
+        document.getElementById('emailDisplay').textContent = `OTP will be sent to: ${userEmail}`;
+
+        // Auto-generate and send OTP
+        sendOTP();
+    });
+
+    function sendOTP() {
+        const result = generateAndSendOTP(userEmail);
+
+        if (!result.success) {
+            alert(result.message);
+            window.location.href = 'registration.html';
+            return;
+        }
+
+        otpExpiryTime = Date.now() + (result.expiryMinutes * 60 * 1000);
+        document.getElementById('otpInfo').textContent = `OTP valid for ${result.expiryMinutes} minutes`;
+
+        console.log(`OTP sent to ${userEmail}`);
+
+        // Start countdown
+        startCountdown();
+
+        // Disable resend button initially
+        document.getElementById('resendBtn').disabled = true;
+    }
+
+    function startCountdown() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+
+        const countdownDiv = document.getElementById('countdownTimer');
+        const resendBtn = document.getElementById('resendBtn');
+
+        countdownInterval = setInterval(() => {
+            const now = Date.now();
+            const remaining = otpExpiryTime - now;
+
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                countdownDiv.textContent = 'OTP Expired! Click "Resend OTP" to get a new one.';
+                document.getElementById('verifyBtn').disabled = true;
+                resendBtn.disabled = false;
+            } else {
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                countdownDiv.textContent = `Expires in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                resendBtn.disabled = false;
+            }
+        }, 1000);
+    }
+
+    function handleVerifyOTP(event) {
+        event.preventDefault();
+
+        const otp = document.getElementById('otp').value.trim();
+        const errorDiv = document.getElementById('otpError');
+        const verifyBtn = document.getElementById('verifyBtn');
+
+        if (!otp) {
+            errorDiv.textContent = 'Please enter the OTP';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        if (!/^\d{6}$/.test(otp)) {
+            errorDiv.textContent = 'OTP must be 6 digits';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Verify OTP
+        const result = verifyOTP(userEmail, otp);
+
+        if (result.success) {
+            alert('Email verified successfully! Account created.');
+            clearInterval(countdownInterval);
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 500);
+        } else {
+            errorDiv.textContent = result.message;
+            errorDiv.style.display = 'block';
+            document.getElementById('otp').value = '';
+        }
+    }
+
+    function handleResendOTP() {
+        const resendBtn = document.getElementById('resendBtn');
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'Sending...';
+
+        // Clear old OTP first
+        let otpRecords = getOTPRecords();
+        delete otpRecords[userEmail.toLowerCase()];
+        saveOTPRecords(otpRecords);
+
+        // Send new OTP
+        sendOTP();
+        document.getElementById('otp').value = '';
+        document.getElementById('otpError').style.display = 'none';
+
+        resendBtn.textContent = 'Resend OTP';
+    }
+
+    // Allow only numbers in OTP field
+    document.getElementById('otp').addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        document.getElementById('otpError').style.display = 'none';
+    });
+</script>
+</body>
+</html>

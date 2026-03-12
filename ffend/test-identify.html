@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Identify Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background: #EDF9EB; padding: 20px;">
+
+<div class="container">
+    <h1>🌿 Plant Identification Test</h1>
+    
+    <div class="card p-4" style="max-width: 600px; margin: 20px auto;">
+        <h3>Upload Plant Image</h3>
+        <input type="file" id="testImage" accept="image/*" class="form-control mb-3">
+        <button onclick="testIdentify()" class="btn btn-success btn-lg">Identify Plant</button>
+        <div id="output" style="margin-top: 20px; white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 8px; display: none;"></div>
+    </div>
+</div>
+
+<script src="api-client.js"></script>
+<script>
+async function testIdentify() {
+    const file = document.getElementById('testImage').files[0];
+    const output = document.getElementById('output');
+    
+    if (!file) {
+        alert('Please select an image first!');
+        return;
+    }
+    
+    console.log('Testing identification with file:', file.name);
+    output.textContent = 'Processing: ' + file.name + '...';
+    output.style.display = 'block';
+    
+    try {
+        const response = await greensphereAPI.identifyPlantFromFile(file);
+        console.log('Response:', response);
+        
+        if (response.success && response.data) {
+            output.textContent = JSON.stringify(response.data, null, 2);
+        } else {
+            output.textContent = 'Error: ' + (response.message || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        output.textContent = 'Exception: ' + error.message + '\n\nCheck console for details.';
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,733 @@
+<!-- 
+MY GARDEN - PLANT ANALYSIS FRONTEND INTEGRATION
+Add these sections to my-garden.html to enable health tracking UI
+-->
+
+<!-- ============================================================================
+     SECTION 1: ADD THIS TO HTML HEAD (for styles)
+     ============================================================================ -->
+
+<style>
+    /* Health Score Badge */
+    .health-badge {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin: 10px 0;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .health-badge.excellent {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .health-badge.good {
+        background: linear-gradient(135deg, #8bc34a, #7db342);
+        color: white;
+        box-shadow: 0 4px 15px rgba(139, 195, 74, 0.3);
+    }
+    
+    .health-badge.fair {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+    
+    .health-badge.poor {
+        background: linear-gradient(135deg, #ff5722, #e64a19);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+    }
+    
+    .health-badge.critical {
+        background: linear-gradient(135deg, #f44336, #da190b);
+        color: white;
+        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+    }
+    
+    /* Analysis Panel */
+    .analysis-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        display: none;
+    }
+    
+    .analysis-panel.active {
+        display: block;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Analysis metrics grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .metric-card {
+        background: linear-gradient(135deg, #f5f5f5, #ffffff);
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .metric-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2e7d32;
+    }
+    
+    /* Trend indicator */
+    .trend-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .trend-up {
+        color: #4caf50;
+    }
+    
+    .trend-down {
+        color: #f44336;
+    }
+    
+    .trend-stable {
+        color: #ff9800;
+    }
+    
+    /* Recommendations */
+    .recommendations-section {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-left: 4px solid #2e7d32;
+        border-radius: 5px;
+    }
+    
+    .recommendations-section h4 {
+        margin-bottom: 12px;
+        color: #2e7d32;
+        font-weight: 600;
+    }
+    
+    .recommendation-item {
+        padding: 8px 0;
+        font-size: 0.95rem;
+        color: #555;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .recommendation-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Buttons */
+    .btn-analyze {
+        background: linear-gradient(135deg, #66bb6a, #2e7d32);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    
+    .btn-analyze:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+    }
+    
+    /* Loading spinner */
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(46, 125, 50, 0.3);
+        border-top-color: #2e7d32;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Plant history timeline */
+    .history-timeline {
+        margin-top: 20px;
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .history-item {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        position: relative;
+    }
+    
+    .history-item:before {
+        content: '';
+        position: absolute;
+        left: -35px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        background: #2e7d32;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #2e7d32;
+    }
+    
+    .history-date {
+        font-weight: 600;
+        color: #2e7d32;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .history-score {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+    }
+    
+    /* Comparison card */
+    .plant-comparison {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .plant-card-small {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        border: 2px solid #e0e0e0;
+        transition: all 0.3s;
+    }
+    
+    .plant-card-small:hover {
+        border-color: #2e7d32;
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
+    }
+    
+    .plant-name-small {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .plant-rank {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2e7d32;
+        margin-bottom: 5px;
+    }
+    
+    .plant-score-small {
+        font-size: 1.2rem;
+        color: #666;
+        font-weight: 600;
+    }
+    
+    /* Modal for full analysis view */
+    .analysis-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .analysis-modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .analysis-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+    }
+    
+    .modal-close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #999;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+    
+    .modal-close:hover {
+        color: #333;
+    }
+</style>
+
+
+<!-- ============================================================================
+     SECTION 2: ADD THIS TO HTML BODY (plant card enhancement)
+     ============================================================================ -->
+
+<!-- Enhanced plant card with analysis -->
+<div class="plant-card" id="plant-card-{plantId}">
+    <!-- Existing card front content -->
+    <div class="card-front">
+        <img src="{plantImage}" alt="{plantName}" style="width: 100%; height: 150px; object-fit: cover;">
+        <h5 style="margin-top: 10px;">{plantName}</h5>
+        <p style="font-size: 0.8rem; color: #999;">{scientificName}</p>
+        
+        <!-- NEW: Health indicator -->
+        <div id="health-indicator-{plantId}" style="margin-top: 10px;">
+            <!-- Will be populated with health badge -->
+        </div>
+        
+        <!-- NEW: Quick action buttons -->
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn-analyze" onclick="showAnalysisModal({plantId})">
+                📸 Analyze
+            </button>
+            <button class="btn-analyze" style="background: #2196f3;" onclick="showPlantHistory({plantId})">
+                📊 History
+            </button>
+        </div>
+    </div>
+    
+    <!-- Analysis panel (shown when clicked) -->
+    <div class="analysis-panel" id="analysis-panel-{plantId}">
+        <!-- Populated by JavaScript -->
+    </div>
+</div>
+
+
+<!-- ============================================================================
+     SECTION 3: MODALS FOR ANALYSIS
+     ============================================================================ -->
+
+<!-- Camera/Photo capture modal -->
+<div id="photo-modal" class="analysis-modal">
+    <div class="analysis-modal-content">
+        <button class="modal-close" onclick="closePhotoModal()">&times;</button>
+        <h3 style="margin-bottom: 20px;">📸 Capture Plant Photo</h3>
+        
+        <video id="camera-preview" style="width: 100%; border-radius: 10px; margin-bottom: 15px;"></video>
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-analyze" style="flex: 1;" onclick="capturePhoto()">
+                📷 Capture
+            </button>
+            <button class="btn-analyze" style="flex: 1; background: #9e9e9e;" onclick="closePhotoModal()">
+                Cancel
+            </button>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center; font-size: 0.9rem; color: #666;">
+            Or
+            <input type="file" id="file-upload" accept="image/*" 
+                   onchange="uploadPhotoFrom File(event)" style="cursor: pointer;">
+            <label for="file-upload" style="cursor: pointer; color: #2e7d32; font-weight: 600;">
+                choose from device
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis results modal -->
+<div id="analysis-results-modal" class="analysis-modal">
+    <div class="analysis-modal-content">
+        <button class="modal-close" onclick="closeAnalysisResults()">&times;</button>
+        <h3 style="margin-bottom: 20px; color: #2e7d32;">🌱 Plant Health Analysis</h3>
+        
+        <!-- Health score -->
+        <div id="analysis-results" style="margin-bottom: 20px;">
+            <!-- Populated by JavaScript -->
+        </div>
+        
+        <!-- Detailed metrics -->
+        <div class="metrics-grid" id="metrics-container">
+            <!-- Filled dynamically -->
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="recommendations-section" id="recommendations-container">
+            <!-- Filled dynamically -->
+        </div>
+        
+        <button class="btn-analyze" style="width: 100%; margin-top: 20px;" onclick="closeAnalysisResults()">
+            Got it!
+        </button>
+    </div>
+</div>
+
+<!-- Plant history modal -->
+<div id="history-modal" class="analysis-modal">
+    <div class="analysis-modal-content">
+        <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+        <h3 style="margin-bottom: 20px; color: #2e7d32;">📊 Health History</h3>
+        
+        <!-- Trend indicator -->
+        <div id="trend-indicator" style="margin-bottom: 20px;">
+            <!-- Filled dynamically -->
+        </div>
+        
+        <!-- Timeline -->
+        <div class="history-timeline" id="history-timeline">
+            <!-- Filled dynamically -->
+        </div>
+        
+        <button class="btn-analyze" style="width: 100%; margin-top: 20px;" onclick="closeHistoryModal()">
+            Close
+        </button>
+    </div>
+</div>
+
+<!-- Garden comparison modal -->
+<div id="comparison-modal" class="analysis-modal">
+    <div class="analysis-modal-content">
+        <button class="modal-close" onclick="closeComparisonModal()">&times;</button>
+        <h3 style="margin-bottom: 10px; color: #2e7d32;">🏆 Garden Ranking</h3>
+        <p style="color: #999; margin-bottom: 20px; font-size: 0.9rem;">How your plants compare</p>
+        
+        <div id="comparison-content">
+            <!-- Filled dynamically -->
+        </div>
+        
+        <button class="btn-analyze" style="width: 100%; margin-top: 20px;" onclick="closeComparisonModal()">
+            Done
+        </button>
+    </div>
+</div>
+
+
+<!-- ============================================================================
+     SECTION 4: ADD THIS TO JAVASCRIPT
+     ============================================================================ -->
+
+<script>
+// ===== IMAGE CAPTURE & UPLOAD =====
+
+let currentPlantId = null;
+let currentPhoto = null;
+
+async function showAnalysisModal(plantId) {
+    currentPlantId = plantId;
+    
+    // Check if we have camera access
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.getElementById('camera-preview');
+        video.srcObject = stream;
+        document.getElementById('photo-modal').classList.add('active');
+    } catch (err) {
+        // Fallback to file upload
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => uploadPhotoFromFile(e);
+        input.click();
+    }
+}
+
+function closePhotoModal() {
+    // Stop camera stream
+    const video = document.getElementById('camera-preview');
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+    }
+    document.getElementById('photo-modal').classList.remove('active');
+}
+
+async function capturePhoto() {
+    const video = document.getElementById('camera-preview');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    
+    currentPhoto = canvas.toDataURL('image/jpeg', 0.9);
+    closePhotoModal();
+    analyzePhoto();
+}
+
+async function uploadPhotoFromFile(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+        currentPhoto = e.target.result;
+        analyzePhoto();
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+// ===== PLANT ANALYSIS =====
+
+async function analyzePhoto() {
+    if (!currentPhoto || !currentPlantId) return;
+    
+    try {
+        // Show loading state
+        const resultsDiv = document.getElementById('analysis-results');
+        resultsDiv.innerHTML = '<div class="spinner"></div> Analyzing plant...';
+        document.getElementById('analysis-results-modal').classList.add('active');
+        
+        // Send to backend
+        const response = await fetch(`/garden/${currentPlantId}/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image_base64: currentPhoto,
+                image_filename: `plant_analysis_${Date.now()}.jpg`,
+                notes: 'Health check photo'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const analysis = result.data.analysis;
+            const progress = result.data.progress_record;
+            
+            // Display results
+            displayAnalysisResults(analysis, progress);
+            
+            // Update plant card with health badge
+            updateHealthBadge(currentPlantId, analysis.health);
+            
+        } else {
+            resultsDiv.innerHTML = `<p style="color: #f44336;">❌ Analysis failed: ${result.message}</p>`;
+        }
+        
+    } catch (error) {
+        console.error('Error analyzing photo:', error);
+        document.getElementById('analysis-results').innerHTML = 
+            '<p style="color: #f44336;">❌ Error analyzing plant</p>';
+    }
+}
+
+function displayAnalysisResults(analysis, progress) {
+    const health = analysis.health;
+    
+    // Health score badge
+    const badgeClass = 
+        health.score > 80 ? 'excellent' :
+        health.score > 60 ? 'good' :
+        health.score > 40 ? 'fair' :
+        health.score > 20 ? 'poor' : 'critical';
+    
+    document.getElementById('analysis-results').innerHTML = `
+        <div class="health-badge ${badgeClass}">
+            ✨ Health Score: ${health.score.toFixed(1)}/100
+            <br>
+            <small>${health.status.toUpperCase()}</small>
+        </div>
+    `;
+    
+    // Metrics grid
+    const leaf = analysis.leaf_metrics;
+    document.getElementById('metrics-container').innerHTML = `
+        <div class="metric-card">
+            <div class="metric-label">🍃 Leaf Density</div>
+            <div class="metric-value">${leaf.leaf_density}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">📊 Leaf Count Est.</div>
+            <div class="metric-value">~${leaf.estimated_leaf_count}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">🟢 Green Content</div>
+            <div class="metric-value">${health.green_percentage.toFixed(1)}%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">💛 Yellowing</div>
+            <div class="metric-value">${health.yellowing_detected.toFixed(1)}%</div>
+        </div>
+    `;
+    
+    // Recommendations
+    const recommendations = analysis.recommendations || [
+        '✅ Continue monitoring plant health',
+        '💧 Maintain current care routine'
+    ];
+    
+    document.getElementById('recommendations-container').innerHTML = `
+        <h4>💡 Recommendations</h4>
+        ${recommendations.map(r => `<div class="recommendation-item">${r}</div>`).join('')}
+    `;
+}
+
+function updateHealthBadge(plantId, healthData) {
+    const badgeClass = 
+        healthData.score > 80 ? 'excellent' :
+        healthData.score > 60 ? 'good' :
+        healthData.score > 40 ? 'fair' :
+        healthData.score > 20 ? 'poor' : 'critical';
+    
+    const badge = document.getElementById(`health-indicator-${plantId}`);
+    if (badge) {
+        badge.innerHTML = `
+            <div class="health-badge ${badgeClass}">
+                Score: ${healthData.score.toFixed(1)}/100
+            </div>
+        `;
+    }
+}
+
+function closeAnalysisResults() {
+    document.getElementById('analysis-results-modal').classList.remove('active');
+}
+
+// ===== PLANT HISTORY =====
+
+async function showPlantHistory(plantId) {
+    try {
+        const response = await fetch(`/garden/${plantId}/progress?limit=10`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            
+            // Trend indicator
+            if (data.trend) {
+                const trend = data.trend;
+                const trendClass = 
+                    trend.trend === 'improving' ? 'trend-up' :
+                    trend.trend === 'declining' ? 'trend-down' : 'trend-stable';
+                
+                const arrow = 
+                    trend.trend === 'improving' ? '📈' :
+                    trend.trend === 'declining' ? '📉' : '➡️';
+                
+                document.getElementById('trend-indicator').innerHTML = `
+                    <div class="trend-indicator ${trendClass}">
+                        ${arrow} ${trend.trend_percentage > 0 ? '+' : ''}${trend.trend_percentage}%
+                    </div>
+                `;
+            }
+            
+            // Timeline
+            const timeline = data.progress_records.map(record => `
+                <div class="history-item">
+                    <div class="history-date">${new Date(record.recorded_at).toLocaleDateString()}</div>
+                    <div class="history-score">${record.health_score?.toFixed(1) || 'N/A'}/100</div>
+                    <small style="color: #999;">${record.health_status || 'N/A'}</small>
+                </div>
+            `).join('');
+            
+            document.getElementById('history-timeline').innerHTML = timeline;
+            document.getElementById('history-modal').classList.add('active');
+        }
+    } catch (error) {
+        console.error('Error fetching history:', error);
+    }
+}
+
+function closeHistoryModal() {
+    document.getElementById('history-modal').classList.remove('active');
+}
+
+// ===== PLANT COMPARISON =====
+
+async function showPlantComparison(userId) {
+    try {
+        const response = await fetch(`/garden/user/${userId}/comparison`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            const html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #2e7d32;">
+                        ${data.average_health.toFixed(1)}/100
+                    </div>
+                    <small style="color: #999;">Garden Average</small>
+                </div>
+                <div class="plant-comparison">
+                    ${data.ranking.map(plant => `
+                        <div class="plant-card-small">
+                            <div class="plant-rank">#${plant.rank}</div>
+                            <div class="plant-name-small">${plant.name}</div>
+                            <div class="plant-score-small">${plant.health_score.toFixed(1)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('comparison-content').innerHTML = html;
+            document.getElementById('comparison-modal').classList.add('active');
+        }
+    } catch (error) {
+        console.error('Error comparing plants:', error);
+    }
+}
+
+function closeComparisonModal() {
+    document.getElementById('comparison-modal').classList.remove('active');
+}
+
+// Close modals on ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.analysis-modal.active').forEach(m => m.classList.remove('active'));
+    }
+});
+</script>

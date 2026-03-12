@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GreenSphere - Frontend Integration Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2e7d32; }
+        h2 { color: #1b5e20; margin-top: 30px; }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .code-block {
+            background: #f4f4f4;
+            padding: 15px;
+            border-left: 4px solid #2e7d32;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .step {
+            background: #e8f5e9;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul { line-height: 1.8; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🌿 GreenSphere Frontend Integration Guide</h1>
+    <p>Complete guide to integrate your HTML files with the Flask backend for plant identification and disease detection.</p>
+
+    <h2>✅ Quick Start</h2>
+    <div class="step">
+        <p><strong>Expected Time:</strong> 5-10 minutes</p>
+        <ol>
+            <li>Copy <code>api-client.js</code> to your frontend directory</li>
+            <li>Add script tags to identify.html and disease.html</li>
+            <li>Replace the <code>identifyPlant()</code> and <code>detectDisease()</code> functions</li>
+            <li>Start the Flask backend: <code>python run.py</code></li>
+            <li>Open your HTML files in browser</li>
+        </ol>
+    </div>
+
+    <h2>📝 Step 1: Update identify.html</h2>
+    <p>Add these two script tags BEFORE the closing <code>&lt;/body&gt;</code> tag:</p>
+    
+    <div class="code-block">
+&lt;script src="api-client.js"&gt;&lt;/script&gt;
+&lt;script src="identify-integration.js"&gt;&lt;/script&gt;
+    </div>
+
+    <p>Then replace the entire <code>identifyPlant()</code> function with the code from <code>identify-integration.js</code></p>
+
+    <div class="warning">
+        <strong>⚠️ Important:</strong> Keep the rest of the HTML and CSS intact. Only replace the JavaScript <code>identifyPlant()</code> function and the <code>plantData</code> object is still used for common plants reference.
+    </div>
+
+    <h2>📝 Step 2: Update disease.html</h2>
+    <p>Add these two script tags BEFORE the closing <code>&lt;/body&gt;</code> tag:</p>
+    
+    <div class="code-block">
+&lt;script src="api-client.js"&gt;&lt;/script&gt;
+&lt;script src="disease-integration.js"&gt;&lt;/script&gt;
+    </div>
+
+    <p>Then replace the <code>detectDisease()</code> function with the code from <code>disease-integration.js</code></p>
+
+    <h2>🚀 Step 3: Start the Backend</h2>
+    
+    <div class="code-block">
+# Navigate to backend directory
+cd backend
+
+# Activate virtual environment (Windows)
+venv\Scripts\activate
+
+# Or on Mac/Linux
+source venv/bin/activate
+
+# Install dependencies (if not done yet)
+pip install -r requirements.txt
+
+# Set your PlantID API key in .env file
+# PLANTID_API_KEY=your_api_key_here
+
+# Run the server
+python run.py
+    </div>
+
+    <p>You should see:</p>
+    <div class="success">
+        ╔════════════════════════════════════════════════════╗<br>
+        ║       GreenSphere Backend Started                  ║<br>
+        ║                                                    ║<br>
+        ║  API Server: http://localhost:5000                ║<br>
+        ║  Health Check: http://localhost:5000/api/health   ║<br>
+        ║                                                    ║<br>
+        ║  Plant Identification: POST /api/plants/identify  ║<br>
+        ║  Disease Detection: POST /api/diseases/detect     ║<br>
+        ║                                                    ║<br>
+        ║  Press CTRL+C to stop the server                  ║<br>
+        ╚════════════════════════════════════════════════════╝
+    </div>
+
+    <h2>📂 File Organization</h2>
+    <p>Your project structure should look like:</p>
+    
+    <div class="code-block">
+ffend/
+├── index.html
+├── identify.html
+├── disease.html
+├── my-garden.html
+├── nursery.html
+├── shared-data.js
+├── api-client.js                 ← NEW
+├── identify-integration.js        ← NEW
+├── disease-integration.js         ← NEW
+│
+└── backend/
+    ├── app.py
+    ├── config.py
+    ├── plantid_service.py
+    ├── run.py
+    ├── requirements.txt
+    ├── .env
+    ├── README.md
+    └── routes/
+        ├── __init__.py
+        ├── health_routes.py
+        ├── plant_routes.py
+        └── disease_routes.py
+    </div>
+
+    <h2>🔧 Configuration</h2>
+    
+    <h3>Get PlantID API Key</h3>
+    <ol>
+        <li>Visit <a href="https://plant.id/" target="_blank">https://plant.id/</a></li>
+        <li>Sign up for a free account</li>
+        <li>Go to your dashboard and copy your API key</li>
+    </ol>
+
+    <h3>Configure .env</h3>
+    <div class="code-block">
+# Create file: backend/.env
+PLANTID_API_KEY=your_api_key_from_plant_id
+PLANTID_API_URL=https://api.plant.id/v3
+FLASK_ENV=development
+FLASK_DEBUG=True
+CORS_ALLOWED_ORIGINS=http://localhost:5000,http://localhost:3000,http://127.0.0.1:5000
+    </div>
+
+    <h2>✨ Features Available</h2>
+    <ul>
+        <li>✅ Plant identification with confidence scores</li>
+        <li>✅ Disease detection with severity levels</li>
+        <li>✅ Healthy plant detection</li>
+        <li>✅ Detailed plant care information</li>
+        <li>✅ Disease treatment recommendations</li>
+        <li>✅ Base64 image support (webcam integration ready)</li>
+        <li>✅ CORS enabled for cross-origin requests</li>
+    </ul>
+
+    <h2>🧪 Testing the API</h2>
+    
+    <h3>Test Health Check</h3>
+    <div class="code-block">
+curl http://localhost:5000/api/health
+    </div>
+
+    <h3>Test Plant Identification</h3>
+    <div class="code-block">
+# Using multipart form data
+curl -X POST -F "image=@path/to/plant.jpg" \
+  http://localhost:5000/api/plants/identify
+    </div>
+
+    <h3>Test Disease Detection</h3>
+    <div class="code-block">
+# Using multipart form data
+curl -X POST -F "image=@path/to/plant.jpg" \
+  http://localhost:5000/api/diseases/detect
+    </div>
+
+    <h2>🐛 Troubleshooting</h2>
+    
+    <div class="warning">
+        <h3>Error: "PlantID API key is not configured"</h3>
+        <ul>
+            <li>Make sure you created <code>backend/.env</code> file</li>
+            <li>Add your API key: <code>PLANTID_API_KEY=your_key_here</code></li>
+            <li>Restart the Flask server</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>Error: CORS error in browser console</h3>
+        <ul>
+            <li>Check that your API URL is correct in api-client.js</li>
+            <li>Verify backend is running on http://localhost:5000</li>
+            <li>Check CORS_ALLOWED_ORIGINS in .env includes your frontend URL</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>Error: "NetworkError" or timeout</h3>
+        <ul>
+            <li>Make sure Flask backend is running</li>
+            <li>Check internet connection (PlantID API needs external connection)</li>
+            <li>Try with a smaller image file (< 5MB)</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>Error: 500 Internal Server Error</h3>
+        <ul>
+            <li>Check the error message in Flask terminal</li>
+            <li>Verify image file is valid and supported format</li>
+            <li>Check PlantID API key is correct</li>
+        </ul>
+    </div>
+
+    <h2>📱 Browser Console Debugging</h2>
+    <p>If something doesn't work, open browser console (F12) and check for errors:</p>
+    <ul>
+        <li>Network tab: Check API request/response</li>
+        <li>Console: Look for JavaScript errors</li>
+        <li>Use <code>greensphereAPI.getHealth()</code> to test API connection</li>
+    </ul>
+
+    <h2>🎨 Customization</h2>
+    
+    <h3>Change API URL</h3>
+    <p>If running backend on different port/host, edit api-client.js:</p>
+    <div class="code-block">
+const greensphereAPI = new GreenSphereAPI('http://your-backend-url:5000/api');
+    </div>
+
+    <h3>Add More Fields</h3>
+    <p>PlantID API returns more data. You can access additional fields from the response in your integration scripts.</p>
+
+    <h2>📞 Next Steps</h2>
+    <ul>
+        <li>Test plant identification with clear images</li>
+        <li>Test disease detection with plant photos</li>
+        <li>Add image upload preview</li>
+        <li>Integrate with "My Garden" feature to save results</li>
+        <li>Add webcam capture for real-time identification</li>
+        <li>Create history/timeline of identifications</li>
+    </ul>
+
+    <h2>📄 Additional Resources</h2>
+    <ul>
+        <li>PlantID API Docs: <a href="https://docs.plant.id/" target="_blank">https://docs.plant.id/</a></li>
+        <li>Flask Documentation: <a href="https://flask.palletsprojects.com/" target="_blank">https://flask.palletsprojects.com/</a></li>
+        <li>Backend README: See <code>backend/README.md</code></li>
+    </ul>
+
+    <div class="success">
+        <strong>✅ You're all set!</strong><br>
+        Follow the steps above and your GreenSphere backend should be up and running. Happy gardening! 🌱
+    </div>
+</div>
+</body>
+</html>
