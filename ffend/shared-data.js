@@ -1,5 +1,11 @@
 // shared-data.js - Complete User Profile Management with Email-based OTP
 
+// Automatic API base URL for dev/prod
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "";
+
 // ===== EMAIL AUTHORIZATION SETTINGS =====
 // Set to 'true' to allow ANY email
 // Set to 'false' to only allow emails in the ALLOWED_EMAILS list
@@ -28,7 +34,7 @@ function generateOTP() {
 // Send OTP to real email address via backend
 async function sendOTPToEmail(email, otp) {
     try {
-        const response = await fetch('http://localhost:5000/api/email/send-otp', {
+        const response = await fetch(`${API_BASE}/api/email/send-otp`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
