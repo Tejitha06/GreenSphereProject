@@ -1,10 +1,16 @@
+// Automatically set API base URL for dev/prod
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "/api";
+
 /**
  * GreenSphere API Client
  * Handles all API communication for plant identification and disease detection
  */
 
 class GreenSphereAPI {
-    constructor(baseURL = 'http://localhost:5000/api') {
+    constructor(baseURL = API_BASE) {
         this.baseURL = baseURL;
         this.timeout = 30000; // 30 seconds
     }
