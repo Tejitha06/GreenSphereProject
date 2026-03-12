@@ -1671,8 +1671,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// API Base URL - change this if backend is on different host/port
-const API_BASE = 'http://localhost:5000';
+// API Base URL - use relative path for production compatibility
+const API_BASE = '';
 
 let selectedPhotoDataUrl = null;
 let isFirstMessage = true;  // Track if this is first message in conversation

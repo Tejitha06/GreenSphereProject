@@ -1064,7 +1064,7 @@
     saveBtn.disabled = true;
 
     // Save to database
-    fetch(`http://localhost:5000/api/auth/user/${user.id}`, {
+    fetch(`/api/auth/user/${user.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
