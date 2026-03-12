@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "ffend/backend/app.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "ffend/backend/run.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "ffend/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "ffend/GreenSphere/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "ffend/backend/run.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "ffend/index.html"
+    }
+  ]
+}
